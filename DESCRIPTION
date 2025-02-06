@@ -1,0 +1,24 @@
+Package: uniLasso
+Type: Package
+Title: Univariate-guided sparse regression
+Description: Fit a uninet (lasso) model.
+Version: 2.0
+Date: 
+Authors@R: c(person("Rob", "Tibshirani", role=c("aut", "cre"), email = "tibs@stanford.edu"),
+	     person("Trevor", "Hastie", role="aut"))
+Author:  Rob Tibshirani [aut, cre],
+ Trevor Hastie [aut, cre]
+Maintainer: Rob Tibshirani <tibs@stanford.edu>
+License: GPL-2
+Encoding: UTF-8
+URL: 
+Packaged: 
+Repository:
+Date/Publication:
+NeedsCompilation: yes
+Imports: roxygen2
+RoxygenNote: 7.3.2
+Depends: 
+    glmnet
+Suggests: 
+VignetteBuilder: 

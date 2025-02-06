@@ -1,2 +1,2 @@
 # uniLasso
-Univariate guided lasso
+ Univariate guided lasso
