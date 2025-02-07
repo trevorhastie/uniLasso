@@ -1,9 +1,13 @@
 #' Create the univariate info for use in uniLasso
-#' Currently this function can deal with "gaussian", "binomial", and "Cox" families.
-#' It fits the p separate univariate fits, and if requested computes the loo fit matrix F.
+#'
+#' Fit p separate univariate fits,  and if requested computes the loo fit matrix F.
 #' It is called internally by \code{uniLasso}, or can be called externally on separate data and passed as input to \code{uniLasso}.
+#' Currently this function can accommodate "gaussian", "binomial", and "Cox" families.
+#'
 #' @param X An n x p feature matrix
 #' @param y A response object, depending on the famoly. For "gaussian" it is just a response vector, for "binomial" a binary response vector, and for "cox" it is a Surv object (currently for right censored data).
+#' @param family one of "gaussian","binomial" or "cox". Currently only these families are implemented. In the future others
+#' will be added.
 #' @param nit Number of iterations if Newton steps are required (in "binomial" and "cox"). Default it 4.
 #' @param eps A small number to regularize the hessian for "cox"; default is 0.0001.
 #' @param loo A logical, default=FALSE. If TRUE it computes the matrix of loo fits F.

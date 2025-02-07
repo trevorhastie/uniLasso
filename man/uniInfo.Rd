@@ -2,10 +2,7 @@
 % Please edit documentation in R/uniInfo.R
 \name{uniInfo}
 \alias{uniInfo}
-\title{Create the univariate info for use in uniLasso
-Currently this function can deal with "gaussian", "binomial", and "Cox" families.
-It fits the p separate univariate fits, and if requested computes the loo fit matrix F.
-It is called internally by \code{uniLasso}, or can be called externally on separate data and passed as input to \code{uniLasso}.}
+\title{Create the univariate info for use in uniLasso}
 \usage{
 uniInfo(
   X,
@@ -21,6 +18,9 @@ uniInfo(
 
 \item{y}{A response object, depending on the famoly. For "gaussian" it is just a response vector, for "binomial" a binary response vector, and for "cox" it is a Surv object (currently for right censored data).}
 
+\item{family}{one of "gaussian","binomial" or "cox". Currently only these families are implemented. In the future others
+will be added.}
+
 \item{nit}{Number of iterations if Newton steps are required (in "binomial" and "cox"). Default it 4.}
 
 \item{eps}{A small number to regularize the hessian for "cox"; default is 0.0001.}
@@ -31,10 +31,9 @@ uniInfo(
 an list with components \code{$beta} and \code{$beta0}, and if \code{loo=TRUE}, a n x p matrix \code{F} with the loo fits.
 }
 \description{
-Create the univariate info for use in uniLasso
-Currently this function can deal with "gaussian", "binomial", and "Cox" families.
-It fits the p separate univariate fits, and if requested computes the loo fit matrix F.
+Fit p separate univariate fits,  and if requested computes the loo fit matrix F.
 It is called internally by \code{uniLasso}, or can be called externally on separate data and passed as input to \code{uniLasso}.
+Currently this function can accommodate "gaussian", "binomial", and "Cox" families.
 }
 \examples{
 # Gaussian model
