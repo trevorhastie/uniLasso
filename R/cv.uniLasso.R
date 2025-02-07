@@ -138,7 +138,10 @@ cv.uniLasso <- function(x,y,family=c("gaussian","binomial","cox"),
                     lower.limits=lower.limits,
                     family=family,standardize=standardize,...)
     gfit=fit$glmnet.fit
+    offset=gfit$offset
+    if(offset)gfit$offset=FALSE # temporarily disable offset for intercept calculation
     a0=drop(predict(gfit,info$beta0))
+    if(offset)gfit$offset=TRUE
     gfit$beta=gfit$beta*outer(info$beta,rep(1,length(a0)))
     gfit$a0=a0
     fit$glmnet.fit=gfit

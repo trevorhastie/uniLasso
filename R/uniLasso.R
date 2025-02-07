@@ -130,11 +130,14 @@ uniLasso <- function(x,y,family=c("gaussian","binomial","cox"),
     else {
         ones=rep(1,nrow(x))
         xp=x*outer(ones,info$beta)+outer(ones,info$beta0)
-        }
+    }
     fit = glmnet(xp,y,
                     lower.limits=lower.limits,
                     family=family,standardize=standardize,...)
+    offset=fit$offset
+    if(offset)fit$offset=FALSE # temporarily disable offset for intercept calculation
     a0=drop(predict(fit,info$beta0))
+    if(offset)fit$offset=TRUE
     fit$beta=fit$beta*outer(info$beta,rep(1,length(a0)))
     fit$a0=a0
     fit$info = info[c("beta0","beta")]
