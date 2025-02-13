@@ -126,6 +126,7 @@ cv.uniLasso <- function(x,y,family=c("gaussian","binomial","cox"),
         info = uniInfo(x,y,family,loob.nit,loob.eps,loo)
     }
     else {
+        if(!is.null(info$F))warning("You supplied info with a loo 'F' component; we ignore that, and use '$beta' and'$beta0' instead.")
         loo=FALSE # we cannot trust the supplied info to give the right number of rows
         }
     if(loo)

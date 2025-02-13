@@ -35,6 +35,11 @@ uniInfo = function(X,y,
               nit = 4,
               eps = 0.0001,
               loo = FALSE){
+### Check for constant columns in X
+    s = apply(X,2,sd)
+    zerosd = s==0
+    if(all(zerosd))stop("All features are constant")
+    if(any(zerosd))X = X[,!zerosd,drop=FALSE]
     family=match.arg(family)
     info=switch(family,
                 "gaussian" = loob_ols(X,y,loo=loo),
@@ -42,6 +47,8 @@ uniInfo = function(X,y,
                 "cox" = loob_cox(X,y,nit=nit,eps=eps,loo=loo),
                 stop("Family not yet implemented")
                 )
+    if(any(zerosd))info = zerofix(info,zerosd)
+    info
 }
 loob_ols = function(X,y, loo=FALSE){
     ## LOO calculations for Gaussian model
@@ -107,8 +114,14 @@ loob_bin = function(X,y,nit=4, loo=FALSE){
         ones=rep(1,n)
         Xs=Ws*with(wob,scale(X,xbar,s))
         Ri = with(wob, n*(Ws*(Z-outer(ones,beta0))-Xs*outer(ones,beta))/(n-Ws^2-Xs^2))
-        out$F = Z-Ri/Ws
+        F = Z-Ri/Ws
+        isna=is.na(F)
+        if(any(isna)){
+            wh=apply(isna,2,any)
+            F[,wh]=0
         }
+        out$F=F
+    }
     with(wob, c(out,list( beta=beta/s, beta0 = beta0-xbar*beta/s)))
 }
 
@@ -116,14 +129,14 @@ loob_bin = function(X,y,nit=4, loo=FALSE){
 loob_cox = function(X,y,nit=4,eps=0.0001,loo=FALSE){
     ## LOO calculations forCox PH survival model
     ## X is n x p model matrix, y is Surv  object as expected by glmnet
-    ## Currently we do right censored, so y should have columns time and status
+    ## Currently we do right censored, so y should have first column time and second column status
     ## In addition, we handle ties using Breslow method
     ## Returns F the prevalidated fit matrix (one at a time)
     ## also the univariate coefficients
 
     p = ncol(X)
-    time <- y[, "time"]
-    d    <- y[, "status"]
+    time <- y[, 1]
+    d    <- y[, 2]
     n=length(time)
     ## Initialization
     Eta=matrix(0,n,p)
@@ -150,8 +163,14 @@ loob_cox = function(X,y,nit=4,eps=0.0001,loo=FALSE){
         X2w = X*X*W
         X2w = scale(X2w,FALSE,colSums(X2w))
         Ri = (Z-X*outer(rep(1,n),wob$beta))/(1-X2w)
-        out$F=Z-Ri
+        F=Z-Ri
+        isna=is.na(F)
+        if(any(isna)){
+            wh=apply(isna,2,any)
+            F[,wh]=0
         }
+        out$F=F
+    }
     c(out,list(beta=wob$beta, beta0 = rep(0,p)))
 }
 
@@ -227,3 +246,21 @@ fid <- function(x,index) {
         list(index_first=index_first,index_ties=index_ties[nties>1])
     }
 }
+
+zerofix <- function(info, zerosd){
+    beta = beta0 = double(length(zerosd))
+    beta[!zerosd] = info$beta
+    beta0[!zerosd] = info$beta0
+    infonew=list(beta=beta,beta0=beta0)
+    F = info$F
+    if(!is.null(F)){
+        Fnew=matrix(0,nrow(F),length(zerosd))
+        Fnew[,!zerosd] = F
+        infonew$F=Fnew
+    }
+    infonew
+}
+
+
+
+
