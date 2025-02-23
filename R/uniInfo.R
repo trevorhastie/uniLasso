@@ -8,7 +8,7 @@
 #' @param y A response object, depending on the famoly. For "gaussian" it is just a response vector, for "binomial" a binary response vector, and for "cox" it is a Surv object (currently for right censored data).
 #' @param family one of "gaussian","binomial" or "cox". Currently only these families are implemented. In the future others
 #' will be added.
-#' @param nit Number of iterations if Newton steps are required (in "binomial" and "cox"). Default it 4.
+#' @param nit Number of iterations if Newton steps are required (in "binomial" and "cox"). Default is 2. In principal more is better, but in some cases can run into convergence issues.
 #' @param eps A small number to regularize the hessian for "cox"; default is 0.0001.
 #' @param loo A logical, default=FALSE. If TRUE it computes the matrix of loo fits F.
 #' @return an list with components \code{$beta} and \code{$beta0}, and if \code{loo=TRUE}, a n x p matrix \code{F} with the loo fits.
@@ -32,7 +32,7 @@
 
 uniInfo = function(X,y,
               family=c("gaussian","binomial","cox"),
-              nit = 4,
+              nit = 2,
               eps = 0.0001,
               loo = FALSE){
 ### Check for constant columns in X

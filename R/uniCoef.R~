@@ -1,0 +1,17 @@
+uniCoef <- function(cv.object, info=NULL, s=c("lambda.min","lambda.1se")){
+    type="uniLasso"
+    s = match.arg(s)
+    if(!inherits(cv.object,"cv.uniLasso"))type="Lasso"
+    if(is.null(info))info = cv.object$info
+    if(is.null(info))stop("Either supply a 'cv.uniLasso' object, or else a 'cv.glmnet' object. If you supply the latter, you must provide 'info', the result of a call to 'uniInfo'.")
+    cfs = coef(cv.object,s=s)
+    rns = row.names(cfs)
+    if(rns[1]=="(Intercept)"){
+        cfs=cfs[,-1]
+        rns=rns[-1]
+        }
+    nz = cfs@i+1 #S4 class
+    mat=cbind(cfs[nz,],info$beta[nz])
+    col.names(mat)=c(type,"Univariate")
+    mat)
+}

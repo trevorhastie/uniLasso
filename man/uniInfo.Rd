@@ -8,7 +8,7 @@ uniInfo(
   X,
   y,
   family = c("gaussian", "binomial", "cox"),
-  nit = 4,
+  nit = 2,
   eps = 1e-04,
   loo = FALSE
 )
@@ -21,7 +21,7 @@ uniInfo(
 \item{family}{one of "gaussian","binomial" or "cox". Currently only these families are implemented. In the future others
 will be added.}
 
-\item{nit}{Number of iterations if Newton steps are required (in "binomial" and "cox"). Default it 4.}
+\item{nit}{Number of iterations if Newton steps are required (in "binomial" and "cox"). Default is 2. In principal more is better, but in some cases can run into convergence issues.}
 
 \item{eps}{A small number to regularize the hessian for "cox"; default is 0.0001.}
 
