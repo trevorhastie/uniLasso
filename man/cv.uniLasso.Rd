@@ -12,7 +12,7 @@ cv.uniLasso(
   lower.limits = 0,
   standardize = FALSE,
   info = NULL,
-  loob.nit = 4,
+  loob.nit = 2,
   loob.eps = 1e-04,
   ...
 )
@@ -40,7 +40,7 @@ will be added.}
 
 \item{info}{Users can supply results of \code{uniInfo} on external datasets rather than compute them on the same data used to fit the model. If this is supplied, its \code{$betas} are used. Default is NULL.}
 
-\item{loob.nit}{Number of Newton iterations for GLM or Cox in computing univariate linear predictors. Default is 4.}
+\item{loob.nit}{Number of Newton iterations for GLM or Cox in computing univariate linear predictors. Default is 2.}
 
 \item{loob.eps}{A small number used in regularizing the Hessian for the Cox model. Default is 0.0001.}
 

@@ -42,7 +42,7 @@
 #' @param lower.limits = 0 (default) means that uniLasso  constrains the sign of the coefs in the second round to be that of the univariate fits.
 #' @param standardize input argument to  glmnet for final non-negative lasso fit. Strongly recommend \code{standardize=FALSE} (default) since the univariate fit determines the right scale for each variable.
 #' @param info Users can supply results of \code{uniInfo} on external datasets rather than compute them on the same data used to fit the model. If this is supplied, its \code{$betas} are used. Default is NULL.
-#' @param loob.nit Number of Newton iterations for GLM or Cox in computing univariate linear predictors. Default is 4.
+#' @param loob.nit Number of Newton iterations for GLM or Cox in computing univariate linear predictors. Default is 2.
 #' @param loob.eps A small number used in regularizing the Hessian for the Cox model. Default is 0.0001.
 #' @param \ldots additional arguments passed to \code{cv.glmnet}.
 #' @return An object that inherits from class \code{"cv.glmnet"}. There is one additional parameter returned, which is `info` and has two components.
@@ -117,7 +117,7 @@ cv.uniLasso <- function(x,y,family=c("gaussian","binomial","cox"),
                       lower.limits=0,
                       standardize=FALSE,
                       info=NULL,
-                      loob.nit=4,
+                      loob.nit=2,
                       loob.eps=0.0001,
                       ...){
 

@@ -27,6 +27,9 @@ y <- x \%*\% beta + rnorm(n)*sigma
 
 cvfit <- cv.uniLasso(x, y)
 uniCoef(cvfit)
+
+cvfit2 <- cv.glmnet(x,y)
+uniCoef(cvfit2, info=cvfit$info)
 }
 \description{
 For a \code{cv.uniLasso} object, compare the CV-selected nonzero coefficints to their univariate counterparts. Also works for a \code{cv.glmne}t object.

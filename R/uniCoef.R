@@ -19,6 +19,9 @@
 #' cvfit <- cv.uniLasso(x, y)
 #' uniCoef(cvfit)
 #'
+#' cvfit2 <- cv.glmnet(x,y)
+#' uniCoef(cvfit2, info=cvfit$info)
+#'
 #' @export
 
 uniCoef <- function(cv.object, info=NULL, s=c("lambda.min","lambda.1se"),...){
