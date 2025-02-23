@@ -5,7 +5,7 @@
 #' @param cv.object A `cv.uniLasso` or a `cv.glmnet` object.
 #' @param info The result of a call to `uniInfo()`. If `cv.object` inherits from `cv.uniLasso`, the `$info` component will be used.
 #' @param s the value of lambda to be used, with default `s="lambda.min"`. Alternatively, can be `s="lambda.1se".
-#' @return a two columns matrix with one column being the non-zero coefficients from the `cv.object`, and the other being the corresponding univariate coefficients.
+#' @return a three-columns data frame with the second column being the non-zero coefficients from the `cv.object`, the first the corresponding univariate coefficients, and the third an indication if there was a sign change.
 #'
 #'  @examples
 #'
@@ -39,7 +39,13 @@ uniCoef <- function(cv.object, info=NULL, s=c("lambda.min","lambda.1se"),...){
         nz=nz[-1]-1
     }
     else cfs=cfs[,1]# drops to numeric
-    mat=cbind(cfs[nz],info$beta[nz])
-   dimnames(mat)=list(rns[nz],c(type,"Univariate"))
+    mat=cbind(info$beta[nz],cfs[nz])
+    dimnames(mat)=list(rns[nz],c("Univariate",type))
+    if(nrow(mat)>0){
+        sch = apply(mat,1,prod)<0
+        sch2=rep(" ",length(sch))
+        sch2[sch]="flip"
+        mat = data.frame(mat,"Sign?"=sch2,check.names=FALSE)
+        }
     mat
 }
