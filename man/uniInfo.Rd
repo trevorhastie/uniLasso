@@ -16,7 +16,7 @@ uniInfo(
 \arguments{
 \item{X}{An n x p feature matrix}
 
-\item{y}{A response object, depending on the famoly. For "gaussian" it is just a response vector, for "binomial" a binary response vector, and for "cox" it is a Surv object (currently for right censored data).}
+\item{y}{A response object, depending on the family. For "gaussian" it is just a response vector, for "binomial" a binary response vector, and for "cox" it is a Surv object (currently for right censored data).}
 
 \item{family}{one of "gaussian","binomial" or "cox". Currently only these families are implemented. In the future others
 will be added.}

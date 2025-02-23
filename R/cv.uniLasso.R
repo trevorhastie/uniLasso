@@ -19,7 +19,7 @@
 #'  You can make predictions from the whole path, at 'lambda.min' etc just like you can for
 #'  a `'cv.glmnet object'`.
 #'
-#'  `loo = TRUE` means it uses the prevalidated loo fits (also for binomial and cox) for each univariate model as features to avoid overfitting in the second stage. The coefficients are then multiplied into the original univariate coefficients to get the final model.
+#'  `loo = TRUE` means it uses the prevalidated loo fits (approximate loo or 'alo' for binomial and cox) for each univariate model as features to avoid overfitting in the second stage. The coefficients are then multiplied into the original univariate coefficients to get the final model.
 #'
 #'  `loo = FALSE` means it uses the univariate fitted predictor,  and hence it is a form of adaptive lasso, but tends to overfit.
 #'  `lower.limits = 0` means `uniLasso` constrains the sign of the coefs in the second round to be that of the univariate fits.

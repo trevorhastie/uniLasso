@@ -2,7 +2,7 @@
 % Please edit documentation in R/uniLasso.R
 \name{uniLasso}
 \alias{uniLasso}
-\title{Fit a uniivariate guided lasso model}
+\title{Fit a univariate guided lasso model}
 \usage{
 uniLasso(
   x,
@@ -31,7 +31,7 @@ indicating right-censored.}
 \item{family}{one of "gaussian","binomial" or "cox". Currently only these families are implemented. In the future others
 will be added.}
 
-\item{loo}{TRUE (the default) means that uniLasso uses the prevalidated loo fits (alo for "binomial" and "cox") for each univariate model as features to avoid overfitting.
+\item{loo}{TRUE (the default) means that uniLasso uses the prevalidated loo fits (approximate loo or 'alo' for "binomial" and "cox") for each univariate model as features to avoid overfitting.
 \code{loo=FALSE} means it uses the univariate fitted predictor.}
 
 \item{lower.limits}{= 0 (default) means that uniLasso  constrains the sign of the coefs produced in  the second round to be the same as those in the univariate fits. (Since uniLasso uses the univariate \emph{fits} as features, a positivity constraint at the second stage is equivalent.)}
@@ -59,7 +59,7 @@ all of the methods for \code{glmnet} can be applied, such as \code{predict}, \co
 \details{
 Fits a two stage lasso model. First stage replaces each feature by the univariate fit for that feature.
 Second stage fits a (positive) lasso using the first stage features (which preserves the signs of the first stage model). Hence the second stage selects and
-modifies the coefficents of the first stage model, similar to the adaptive lasso. Leads to sparser and more interpretable models.
+modifies the coefficients of the first stage model, similar to the adaptive lasso. Leads to sparser and more interpretable models.
 
 For "binomial" family \code{y} is a binary response.
 For "cox" family, \code{y} should be a \code{Surv} object for right censored data,
@@ -68,7 +68,7 @@ Although \code{glmnet} has more flexible options say for binary responses, and f
 responses, these are not yet implemented (but are possible and will appear in future versions).
 Likewise, other \code{glm} families are possible as well, but not yet implemented.
 
-\code{loo = TRUE} means it uses the prevalidated loo fits (alo for binomial and cox) for each univariate model as featuresto avoid overfitting in the second stage. The coefficients are then multiplied into the original univariate coefficients to get the final model.
+\code{loo = TRUE} means it uses the prevalidated loo fits (approximate loo or 'alo' for binomial and cox) for each univariate model as features to avoid overfitting in the second stage. The coefficients are then multiplied into the original univariate coefficients to get the final model.
 
 \code{loo = FALSE} means it uses the univariate fitted predictor,  and hence it is a form of adaptive lasso, but tends to overfit.
 \code{lower.limits = 0} means \code{uniLasso} constrains the sign of the coefs in the second round to be that of the univariate fits.
@@ -113,7 +113,7 @@ predict(fitb, xtest[1:10,], s=1, type="response")
  plot(fit_pos_adapt)
 
 # uniLasso with no constraints, but starting `beta` from univariate fits.
-# This is a version of the adaptive lasso, which tends to overfit, and loses interpreability.
+# This is a version of the adaptive lasso, which tends to overfit, and loses interpretability.
 
  fit_adapt <- uniLasso(x, y, loo = FALSE, lower.limits = -Inf)
  plot(fit_adapt)

@@ -2,7 +2,7 @@
 % Please edit documentation in R/cv.uniLasso.R
 \name{cv.uniLasso}
 \alias{cv.uniLasso}
-\title{Fit a cross-vlaidated univariate guided lasso model.}
+\title{Fit a cross-validated univariate guided lasso model.}
 \usage{
 cv.uniLasso(
   x,
@@ -31,7 +31,7 @@ indicating right-censored.}
 \item{family}{one of "gaussian","binomial" or "cox". Currently only these families are implemented. In the future others
 will be added.}
 
-\item{loo}{TRUE (the default) means that uniLasso uses the prevalidated loo fits (alo for "binomial" and "cox") for each univariate model as features to avoid overfitting.
+\item{loo}{TRUE (the default) means that uniLasso uses the prevalidated loo fits (approximate loo or 'alo' for "binomial" and "cox") for each univariate model as features to avoid overfitting.
 \code{loo=FALSE} means it uses the univariate fitted predictor.}
 
 \item{lower.limits}{= 0 (default) means that uniLasso  constrains the sign of the coefs in the second round to be that of the univariate fits.}
@@ -58,7 +58,7 @@ and \code{assess.glmnet}.
 \details{
 Fits a two stage lasso model and selects the penalty parameter by cross validation. First stage replaces each feature by the univariate fit for that feature.
 Second stage fits a (positive) lasso using the first stage features. Hence the second stage selects and
-modifies the coefficents of the first stage model, similar to the adaptive lasso. Leads to potentially sparser models.
+modifies the coefficients of the first stage model, similar to the adaptive lasso. Leads to potentially sparser models.
 
 For "binomial" family \code{y} is a binary response.
 For "cox" family, \code{y} should be a \code{Surv} object for right censored data,
@@ -71,7 +71,7 @@ This is a one-visit function that returns a \code{'cv.glmnet'} object.
 You can make predictions from the whole path, at 'lambda.min' etc just like you can for
 a \code{'cv.glmnet object'}.
 
-\code{loo = TRUE} means it uses the prevalidated loo fits (alo for binomial and cox) for each univariate model as featuresto avoid overfitting in the second stage. The coefficients are then multiplied into the original univariate coefficients to get the final model.
+\code{loo = TRUE} means it uses the prevalidated loo fits (approximate loo or 'alo' for binomial and cox) for each univariate model as features to avoid overfitting in the second stage. The coefficients are then multiplied into the original univariate coefficients to get the final model.
 
 \code{loo = FALSE} means it uses the univariate fitted predictor,  and hence it is a form of adaptive lasso, but tends to overfit.
 \code{lower.limits = 0} means \code{uniLasso} constrains the sign of the coefs in the second round to be that of the univariate fits.
@@ -116,7 +116,7 @@ predict(cvfitb, xtest[1:10,], type="response") # predict at default s = "lambda.
  plot(cvfit_pos_adapt)
 
 # cv.uniLasso with no constraints, but starting `beta` from univariate fits.
-# This is a version of the adaptive lasso, which tends to overfit, and loses interpreability.
+# This is a version of the adaptive lasso, which tends to overfit, and loses interpretability.
 
  cvfit_adapt <- cv.uniLasso(x, y, loo = FALSE, lower.limits = -Inf)
  plot(cvfit_adapt)
