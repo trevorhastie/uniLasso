@@ -11,26 +11,27 @@ uniCoef(cv.object, info = NULL, s = c("lambda.min", "lambda.1se"), ...)
 
 \item{info}{The result of a call to \code{uniInfo()}. If \code{cv.object} inherits from \code{cv.uniLasso}, the \verb{$info} component will be used.}
 
-\item{s}{the value of lambda to be used, with default \code{s="lambda.min"}. Alternatively, can be `s="lambda.1se".}
+\item{s}{The value of lambda to be used, with default \code{s="lambda.min"}. Alternatively, can be `s="lambda.1se".}
 }
 \value{
 a two columns matrix with one column being the non-zero coefficients from the \code{cv.object}, and the other being the corresponding univariate coefficients.
+}
+\description{
+For a \code{cv.uniLasso} object, compare the CV-selected nonzero coefficients to their univariate counterparts. Also works for a \code{cv.glmnet} object.
+}
+\examples{
 
-@examples
-
-sigma =3
+sigma <-3
 set.seed(1)
-n <- 100; p <- 20
+n <- 100;
+p <- 20
 x <- matrix(rnorm(n * p), n, p)
 beta <- matrix(c(rep(2, 5), rep(0, 15)), ncol = 1)
 y <- x \%*\% beta + rnorm(n)*sigma
 
 cvfit <- cv.uniLasso(x, y)
 uniCoef(cvfit)
-
 cvfit2 <- cv.glmnet(x,y)
 uniCoef(cvfit2, info=cvfit$info)
-}
-\description{
-For a \code{cv.uniLasso} object, compare the CV-selected nonzero coefficints to their univariate counterparts. Also works for a \code{cv.glmne}t object.
+
 }
