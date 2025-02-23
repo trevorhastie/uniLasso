@@ -5,7 +5,7 @@
 #' Currently this function can accommodate "gaussian", "binomial", and "Cox" families.
 #'
 #' @param X An n x p feature matrix
-#' @param y A response object, depending on the famoly. For "gaussian" it is just a response vector, for "binomial" a binary response vector, and for "cox" it is a Surv object (currently for right censored data).
+#' @param y A response object, depending on the family. For "gaussian" it is just a response vector, for "binomial" a binary response vector, and for "cox" it is a Surv object (currently for right censored data).
 #' @param family one of "gaussian","binomial" or "cox". Currently only these families are implemented. In the future others
 #' will be added.
 #' @param nit Number of iterations if Newton steps are required (in "binomial" and "cox"). Default is 2. In principal more is better, but in some cases can run into convergence issues.
@@ -127,7 +127,7 @@ loob_bin = function(X,y,nit=4, loo=FALSE){
 
 
 loob_cox = function(X,y,nit=4,eps=0.0001,loo=FALSE){
-    ## LOO calculations forCox PH survival model
+    ## LOO calculations for Cox PH survival model
     ## X is n x p model matrix, y is Surv  object as expected by glmnet
     ## Currently we do right censored, so y should have first column time and second column status
     ## In addition, we handle ties using Breslow method

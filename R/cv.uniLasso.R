@@ -1,4 +1,4 @@
-#' Fit a cross-vlaidated univariate guided lasso model.
+#' Fit a cross-validated univariate guided lasso model.
 #'
 #' Fit a univariate-guided sparse regression `uniLasso` model using cross-validation to select the second stage lasso penalty parameter. Conveniently,  it returns an object that inherits from \code{cv.glmnet}, so that
 #' all of the methods for \code{cv.glmnet} can be applied, such as `predict`, `plot`, `coef`, `print`,
@@ -6,7 +6,7 @@
 #'
 #' Fits a two stage lasso model and selects the penalty parameter by cross validation. First stage replaces each feature by the univariate fit for that feature.
 #'   Second stage fits a (positive) lasso using the first stage features. Hence the second stage selects and
-#'   modifies the coefficents of the first stage model, similar to the adaptive lasso. Leads to potentially sparser models.
+#'   modifies the coefficients of the first stage model, similar to the adaptive lasso. Leads to potentially sparser models.
 #'
 #'  For "binomial" family `y` is a binary response.
 #'  For "cox" family, `y` should be a `Surv` object for right censored data,
@@ -19,7 +19,7 @@
 #'  You can make predictions from the whole path, at 'lambda.min' etc just like you can for
 #'  a `'cv.glmnet object'`.
 #'
-#'  `loo = TRUE` means it uses the prevalidated loo fits (alo for binomial and cox) for each univariate model as featuresto avoid overfitting in the second stage. The coefficients are then multiplied into the original univariate coefficients to get the final model.
+#'  `loo = TRUE` means it uses the prevalidated loo fits (also for binomial and cox) for each univariate model as features to avoid overfitting in the second stage. The coefficients are then multiplied into the original univariate coefficients to get the final model.
 #'
 #'  `loo = FALSE` means it uses the univariate fitted predictor,  and hence it is a form of adaptive lasso, but tends to overfit.
 #'  `lower.limits = 0` means `uniLasso` constrains the sign of the coefs in the second round to be that of the univariate fits.
@@ -37,7 +37,7 @@
 #' @param family one of "gaussian","binomial" or "cox". Currently only these families are implemented. In the future others
 #' will be added.
 #'
-#' @param loo TRUE (the default) means that uniLasso uses the prevalidated loo fits (alo for "binomial" and "cox") for each univariate model as features to avoid overfitting.
+#' @param loo TRUE (the default) means that uniLasso uses the prevalidated loo fits (approximate loo or 'alo' for "binomial" and "cox") for each univariate model as features to avoid overfitting.
 #' \code{loo=FALSE} means it uses the univariate fitted predictor.
 #' @param lower.limits = 0 (default) means that uniLasso  constrains the sign of the coefs in the second round to be that of the univariate fits.
 #' @param standardize input argument to  glmnet for final non-negative lasso fit. Strongly recommend \code{standardize=FALSE} (default) since the univariate fit determines the right scale for each variable.
@@ -88,7 +88,7 @@
 #'  plot(cvfit_pos_adapt)
 #'
 #' # cv.uniLasso with no constraints, but starting `beta` from univariate fits.
-#' # This is a version of the adaptive lasso, which tends to overfit, and loses interpreability.
+#' # This is a version of the adaptive lasso, which tends to overfit, and loses interpretability.
 #'
 #'  cvfit_adapt <- cv.uniLasso(x, y, loo = FALSE, lower.limits = -Inf)
 #'  plot(cvfit_adapt)
