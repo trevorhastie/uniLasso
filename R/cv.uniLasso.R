@@ -37,7 +37,7 @@
 #' @param family one of "gaussian","binomial" or "cox". Currently only these families are implemented. In the future others
 #' will be added.
 #'
-#' @param loo TRUE (the default) means that uniLasso uses the prevalidated loo fits (also for "binomial" and "cox") for each univariate model as features to avoid overfitting.
+#' @param loo TRUE (the default) means that uniLasso uses the prevalidated loo fits (approximate loo or 'alo' for "binomial" and "cox") for each univariate model as features to avoid overfitting.
 #' \code{loo=FALSE} means it uses the univariate fitted predictor.
 #' @param lower.limits = 0 (default) means that uniLasso  constrains the sign of the coefs in the second round to be that of the univariate fits.
 #' @param standardize input argument to  glmnet for final non-negative lasso fit. Strongly recommend \code{standardize=FALSE} (default) since the univariate fit determines the right scale for each variable.
