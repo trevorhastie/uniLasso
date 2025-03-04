@@ -165,10 +165,18 @@ y <- x \%*\% beta + rnorm(n)*sigma
 xtest=matrix(rnorm(n * p), n, p)
 ytest <- xtest \%*\% beta + rnorm(n)*sigma
 
-# Default usage
+# uniReg usage
 
 fit <- uniReg(x, y)
-plot(fit)
 predict(fit,xtest[1:10,]) #predict on test data
 coef(fit)
+print(fit)
+
+fita <- uniReg(x, y, hard.zero = FALSE)
+print(fita)
+
+fitb <- uniReg(x, y>0, family = "binomial")
+coef(fitb)
+print(fitb)
+
 }
