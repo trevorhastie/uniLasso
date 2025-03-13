@@ -6,7 +6,7 @@
 #' @param hard.zero if `TRUE` (default), the model fits the unpenalized regression. This may not be possible  when `p > n`. In this case `hard.zero = FALSE` is preferable, and the model is fit using the smallest value of `lambda` in the path.
 
 #' @examples
-#' # Gaussian model
+#' # uniReg usage
 #'
 #' sigma =3
 #' set.seed(1)
@@ -15,9 +15,6 @@
 #' beta <- matrix(c(rep(2, 5), rep(0, 15)), ncol = 1)
 #' y <- x %*% beta + rnorm(n)*sigma
 #' xtest=matrix(rnorm(n * p), n, p)
-#' ytest <- xtest %*% beta + rnorm(n)*sigma
-#'
-#' # uniReg usage
 #'
 #' fit <- uniReg(x, y)
 #' predict(fit,xtest[1:10,]) #predict on test data
