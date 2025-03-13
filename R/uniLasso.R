@@ -117,7 +117,7 @@ uniLasso <- function(x,y,family=c("gaussian","binomial","cox"),
                       loob.nit=2,
                       loob.eps=0.0001,
                       ...){
-
+    this.call = match.call()
     family=match.arg(family)
     if(is.null(info)){ # user did not supply info
         info = uniInfo(x,y,family,loob.nit,loob.eps,loo)
@@ -132,6 +132,7 @@ uniLasso <- function(x,y,family=c("gaussian","binomial","cox"),
         ones=rep(1,nrow(x))
         xp=x*outer(ones,info$beta)+outer(ones,info$beta0)
     }
+    dimnames(xp)=dimnames(x)
     fit = glmnet(xp,y,
                     lower.limits=lower.limits,
                     family=family,standardize=standardize,...)
@@ -143,6 +144,7 @@ uniLasso <- function(x,y,family=c("gaussian","binomial","cox"),
     fit$a0=a0
     fit$info = info[c("beta0","beta")]
     class(fit)=c("uniLasso",class(fit))
+    fit$call = this.call
     fit
     }
 
