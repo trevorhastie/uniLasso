@@ -1,0 +1,38 @@
+simulate=function(ntrain,ntest,p,
+                  example=c("simulatedlow","simulatedmedium","simulatedhigh","homecourt2","binomial","cox"),
+                  rho=0.8,
+                  sparsity=0.1,
+                  sigma=NULL){
+    example=match.arg(example)
+    n=ntrain+ntest
+    if(is.null(sigma))
+        sigma=switch(example,
+                     "simulatedlow"=15,
+                     "simulatedmedium"=10,
+                     "simulatedhigh"=5,
+                     "homecourt2"=30,
+                     "binomial"=NULL,
+                      "cox"=NULL
+                     )
+    nonzero = round(sparsity * p)
+    if(example=="homecourt2"){
+        require(MASS)
+   ##Covariance matrix for AR(1)
+        Sigma=rho^abs(outer(1:p,1:p,"-"))
+        x = mvrnorm(n,mu=rep(0,p),Sigma)
+        nonzero_indices = seq(nonzero)
+        beta=double(p)
+        beta[nonzero_indices] <- runif(nonzero, 0.5, 2.0)
+        beta[nonzero_indices]=beta[nonzero_indices]*sign(rnorm(nonzero))
+    } else{
+        u=rnorm(n)
+        fac=sample(c(-1,1),size=p,replace=TRUE)
+        x=matrix(rnorm(n*p),n,p)+scale(matrix(u,n,p),FALSE,fac)
+        beta=c(rnorm(nonzero),rep(0,p-nonzero))
+        }
+    mu=x%*%beta
+    y=mu+sigma*rnorm(n)
+    snr=var(mu)/sigma^2
+    nseq=seq(ntrain)
+    list(x=x[nseq,],y=y[nseq],xtest=x[-nseq,],mutest=mu[-nseq],snr=snr, sigma=sigma)
+}
