@@ -36,6 +36,7 @@
 #'
 #' @param family one of "gaussian","binomial" or "cox". Currently only these families are implemented. In the future others
 #' will be added.
+#' @param weights optional vector of non-negative weights, default is NULL which results in all weights = 1.
 #'
 #' @param loo TRUE (the default) means that uniLasso uses the prevalidated loo fits (approximate loo or 'alo' for "binomial" and "cox") for each univariate model as features to avoid overfitting.
 #' \code{loo=FALSE} means it uses the univariate fitted predictor.
@@ -112,7 +113,7 @@
 #' @export
 
 
-cv.uniLasso <- function(x,y,family=c("gaussian","binomial","cox"),
+cv.uniLasso <- function(x,y,family=c("gaussian","binomial","cox"),weights=NULL,
                       loo=TRUE,
                       lower.limits=0,
                       standardize=FALSE,
@@ -123,7 +124,7 @@ cv.uniLasso <- function(x,y,family=c("gaussian","binomial","cox"),
     this.call = match.call()
     family=match.arg(family)
     if(is.null(info)){ # user did not supply info
-        info = uniInfo(x,y,family,loob.nit,loob.eps,loo)
+        info = uniInfo(x,y,family,weights,loob.nit,loob.eps,loo)
     }
     else {
         if(!is.null(info$F))warning("You supplied info with a loo 'F' component; we ignore that, and use '$beta' and'$beta0' instead.")
@@ -136,7 +137,7 @@ cv.uniLasso <- function(x,y,family=c("gaussian","binomial","cox"),
         xp=x*outer(ones,info$beta)+outer(ones,info$beta0)
     }
     dimnames(xp)=dimnames(x)
-    fit = cv.glmnet(xp,y,
+    fit = cv.glmnet(xp,y,weights=weights,
                     lower.limits=lower.limits,
                     family=family,standardize=standardize,...)
     gfit=fit$glmnet.fit

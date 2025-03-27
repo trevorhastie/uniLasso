@@ -9,6 +9,7 @@ cv.uniLasso(
   x,
   y,
   family = c("gaussian", "binomial", "cox"),
+  weights = NULL,
   loo = TRUE,
   lower.limits = 0,
   standardize = FALSE,
@@ -22,6 +23,7 @@ cv.uniReg(
   x,
   y,
   family = c("gaussian", "binomial", "cox"),
+  weights = NULL,
   loo = TRUE,
   lower.limits = 0,
   standardize = FALSE,
@@ -46,6 +48,8 @@ indicating right-censored.}
 \item{family}{one of "gaussian","binomial" or "cox". Currently only these families are implemented. In the future others
 will be added.}
 
+\item{weights}{optional vector of non-negative weights, default is NULL which results in all weights = 1.}
+
 \item{loo}{TRUE (the default) means that uniLasso uses the prevalidated loo fits (approximate loo or 'alo' for "binomial" and "cox") for each univariate model as features to avoid overfitting.
 \code{loo=FALSE} means it uses the univariate fitted predictor.}
 
@@ -59,7 +63,7 @@ will be added.}
 
 \item{loob.eps}{A small number used in regularizing the Hessian for the Cox model. Default is 0.0001.}
 
-\item{hard.zero}{if \code{TRUE} (default), the model includes \code{lambda=0} in the path. This may not be possible  when \code{p > n}. In this case \code{hard.zero = FALSE} is preferable, and the model is fit using the usual regularization path.}
+\item{hard.zero}{if \code{TRUE} (default), the model fits the unpenalized regression. This is potentially unstable  when \code{p > n}. In this case \code{hard.zero = FALSE} might be preferable, and the model is then fit using the smallest value of \code{lambda} in the path.}
 
 \item{\ldots}{additional arguments passed to \code{cv.glmnet}.}
 }

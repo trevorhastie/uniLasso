@@ -1,35 +1,37 @@
 #' Simulate data for use in uniLasso and uniReg
 #' @param example which of the prepackaged examples to use. Choices are "low-SNR","medium-SNR","high-SNR","home-court","two-class","counter-example", as described in the uniLasso paper.
+#' @param wide logical variable which determines if p> n (default) or not.
 #' @return a list with components "x", "y", "xtest", "ytest", "mutest", and "sigma".
 #' @examples
 #' dat = simulate_uniLasso("high-SNR")
 #' fit = cv.uniLasso(dat$x, dat$y)
-#' mse = mean( (predict(fit, dat$xtest), dat$ytest)^2)
+#' mse = mean( (predict(fit, dat$xtest)- dat$ytest)^2)
 #' @export
 
 simulate_uniLasso <- function(
-                  example=c("low-SNR","medium-SNR","high-SNR","home-court","two-class","counter-example")){
+                  example=c("low-SNR","medium-SNR","high-SNR","home-court","two-class","counter-example"),wide=TRUE){
     example=match.arg(example)
     traintest_split = function(d,ntrain){
         itrain=seq(ntrain)
         list(x=d$x[itrain,],y=d$y[itrain],xtest=d$x[-itrain,],ytest=d$y[-itrain],
              mutest=d$mu[-itrain],sigma=d$sigma)
-        }
+    }
+    p = ifelse(wide,1000,100)
     switch(example,
            "low-SNR" = traintest_split(
-               simulate_Gaussian(3300,1000,snr=0.5),
+               simulate_Gaussian(3300,p,snr=0.5),
                300),
            "medium-SNR" = traintest_split(
-               simulate_Gaussian(3300,1000,snr=1),
+               simulate_Gaussian(3300,p,snr=1),
                300),
            "high-SNR" = traintest_split(
-               simulate_Gaussian(3300,1000,snr=2),
+               simulate_Gaussian(3300,p,snr=2),
                300),
            "home-court" = traintest_split(
-               simulate_Gaussian(3300,1000,snr=2,homecourt=TRUE),
+               simulate_Gaussian(3300,p,snr=2,homecourt=TRUE),
                300),
            "two-class" =  traintest_split(
-               simulate_twoclass(2200),
+               simulate_twoclass(2200,wide),
                200),
            "counter-example" = traintest_split(
                simulate_counterexample(1100),
@@ -62,8 +64,9 @@ simulate_Gaussian=function(n=300,
     y=mu+sigma*rnorm(n)
     list(x=x,y=y,mu=mu,sigma=sigma)
 }
-    simulate_twoclass=function(n){
-        data = simulate_Gaussian(n=n,p=500,homecourt=TRUE)
+simulate_twoclass=function(n,wide){
+    p=ifelse(wide,500,100)
+        data = simulate_Gaussian(n=n,p=p,homecourt=TRUE)
         y = sample(c(0,1),n,replace=TRUE)
         x=data$x
         x[y==1,1:20]=x[y==1,1:20]+0.5

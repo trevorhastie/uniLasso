@@ -6,11 +6,14 @@
 \usage{
 simulate_uniLasso(
   example = c("low-SNR", "medium-SNR", "high-SNR", "home-court", "two-class",
-    "counter-example")
+    "counter-example"),
+  wide = TRUE
 )
 }
 \arguments{
 \item{example}{which of the prepackaged examples to use. Choices are "low-SNR","medium-SNR","high-SNR","home-court","two-class","counter-example", as described in the uniLasso paper.}
+
+\item{wide}{logical variable which determines if p> n (default) or not.}
 }
 \value{
 a list with components "x", "y", "xtest", "ytest", "mutest", and "sigma".
@@ -21,5 +24,5 @@ Simulate data for use in uniLasso and uniReg
 \examples{
 dat = simulate_uniLasso("high-SNR")
 fit = cv.uniLasso(dat$x, dat$y)
-mse = mean( (predict(fit, dat$xtest), dat$ytest)^2)
+mse = mean( (predict(fit, dat$xtest)- dat$ytest)^2)
 }
