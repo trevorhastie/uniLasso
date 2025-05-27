@@ -2,7 +2,7 @@
 #'
 #' Fit a cross-validated univariate-guided sparse regression `uniLasso` model, with a focus on the end of the path which corresponds to the `uniReg` fit. Conveniently,  it returns an object that inherits from \code{cv.glmnet},and methods such as `predict`, `plot`, `coef`, `print` all gives sensible results.
 #'
-#' @param hard.zero if `TRUE` (default), the model includes `lambda=0` in the path. This may not be possible  when `p > n`. In this case `hard.zero = FALSE` is preferable, and the model is fit using the usual regularization path.
+#' @param hard.zero if `TRUE` (default), the model fits the unpenalized regression. This is potentially unstable  when `p > n`. In this case `hard.zero = FALSE` might be preferable, and the model is then fit using the smallest value of `lambda` in the path.
 
 #' @examples
 #' # cv.uniReg usage
@@ -35,7 +35,7 @@
 
 
 
-cv.uniReg <- function(x,y,family=c("gaussian","binomial","cox"),
+cv.uniReg <- function(x,y,family=c("gaussian","binomial","cox"),weights=NULL,
                       loo=TRUE,
                       lower.limits=0,
                       standardize=FALSE,
@@ -47,7 +47,7 @@ cv.uniReg <- function(x,y,family=c("gaussian","binomial","cox"),
     this.call = match.call()
     family=match.arg(family)
     if(is.null(info)){ # user did not supply info
-        info = uniInfo(x,y,family,loob.nit,loob.eps,loo)
+        info = uniInfo(x,y,family,weights,loob.nit,loob.eps,loo)
     }
     else {
         if(!is.null(info$F))warning("You supplied info with a loo 'F' component; we ignore that, and use '$beta' and'$beta0' instead.")
@@ -60,12 +60,19 @@ cv.uniReg <- function(x,y,family=c("gaussian","binomial","cox"),
         xp=x*outer(ones,info$beta)+outer(ones,info$beta0)
     }
     dimnames(xp)=dimnames(x)
-    fit0 = glmnet(xp,y,
+    ## np = dim(xp)
+    ## wide = np[1] <= np[2]
+    ## hardset = !missing(hard.zero)
+    ## if(wide&hard.zero){
+    ##     hard.zero = FALSE
+    ##     if(hardset)warning("Since p > n, hard.zero reset to FALSE")
+    ##     }
+    fit0 = glmnet(xp,y,weights=weights,
                     lower.limits=lower.limits,
                  family=family,standardize=standardize,...)
     lambda=fit0$lambda
     if(hard.zero && min(lambda)>0)lambda = c(lambda,0)
-    fit = cv.glmnet(xp,y,
+    fit = cv.glmnet(xp,y,weights=weights,
                     lower.limits=lower.limits,
                     family=family,standardize=standardize,lambda=lambda,...)
     gfit=fit$glmnet.fit

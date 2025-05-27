@@ -1,8 +1,8 @@
 Package: uniLasso
 Type: Package
 Title: Univariate-guided sparse regression
-Version: 2.6
-Date: 2025-03-25
+Version: 2.7
+Date: 2025-03-26
 Authors@R: c(person("Rob", "Tibshirani", role=c("aut")),
 	     person("Trevor", "Hastie",role=c("aut", "cre"), email = "hastie@stanford.edu"))
 Description: Fit a univariate-guided sparse regression (lasso), by a two-stage procedure. The first stage fits p separate univariate models to the response. The second stage gives more weight to the more important univariate features, and preserves their signs. Conveniently, it returns an objects that inherits from class "glmnet", so that all of the methods for glmnet are available. See <doi:10.48550/arXiv.2501.18360> for details.

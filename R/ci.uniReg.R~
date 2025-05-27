@@ -1,0 +1,59 @@
+#' Compute bootstrap confidence intervals for a univariate guided regression model
+#'
+#' Fit a univariate-guided regression, by a two-stage procedure.
+#' The first stage fits `p` separate univariate models to the response. The second stage fits a regression model, preserving the univariate signs.
+#'
+#' @param hard.zero if `TRUE` (default), the model fits the unpenalized regression. This is potentially unstable  when `p > n`. In this case `hard.zero = FALSE` might be preferable, and the model is then fit using the smallest value of `lambda` in the path.
+
+#' @examples
+#' # uniReg usage
+#'
+#' sigma =3
+#' set.seed(1)
+#' n <- 100; p <- 20
+#' x <- matrix(rnorm(n * p), n, p)
+#' beta <- matrix(c(rep(2, 5), rep(0, 15)), ncol = 1)
+#' y <- x %*% beta + rnorm(n)*sigma
+#' xtest=matrix(rnorm(n * p), n, p)
+#'
+#' fit <- uniReg(x, y)
+#' predict(fit,xtest[1:10,]) #predict on test data
+#' coef(fit)
+#' print(fit)
+#'
+#' fita <- uniReg(x, y, hard.zero = FALSE)
+#' print(fita)
+#'
+#' fitb <- uniReg(x, y>0, family = "binomial")
+#' coef(fitb)
+#' print(fitb)
+#'
+#' @rdname uniLasso
+#'
+#' @export ci.uniReg
+
+
+ci.uniReg <- function(x,y,family=c("gaussian","binomial","cox"),weights=NULL,
+                      B=500,
+                      alpha=0.05,
+                      ...){
+    this.call=match.call()
+    fit = uniReg(x,y,weights,...)
+    beta = coef(fit)
+    vn = row.names(beta)[-1]
+    betamat = matrix(0,length(vn),B)
+    w0 = weights
+    n = nrow(x)
+    if(is.null(w0))w0=rep(1,n)
+    for(b in 1:B){
+        wb = bootstrap_weights(n)*w0
+        bfit = uniReg(x,y,family=family,weights=wb,...)
+        betamat[,b] = as.numeric(coef(bfit))[-1]
+    }
+    ci = apply(betamat, 1, quantile, probs = c(alpha/2,1-alpha/2))
+    ci
+    }
+
+
+
+

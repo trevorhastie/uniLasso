@@ -3,7 +3,7 @@
 #' Fit a univariate-guided regression, by a two-stage procedure.
 #' The first stage fits `p` separate univariate models to the response. The second stage fits a regression model, preserving the univariate signs.
 #'
-#' @param hard.zero if `TRUE` (default), the model fits the unpenalized regression. This may not be possible  when `p > n`. In this case `hard.zero = FALSE` is preferable, and the model is fit using the smallest value of `lambda` in the path.
+#' @param hard.zero if `TRUE` (default), the model fits the unpenalized regression. This is potentially unstable  when `p > n`. In this case `hard.zero = FALSE` might be preferable, and the model is then fit using the smallest value of `lambda` in the path.
 
 #' @examples
 #' # uniReg usage
@@ -32,7 +32,7 @@
 #' @export uniReg
 
 
-uniReg <- function(x,y,family=c("gaussian","binomial","cox"),
+uniReg <- function(x,y,family=c("gaussian","binomial","cox"),weights=NULL,
                    loo=TRUE,
                    lower.limits=0,
                    standardize=FALSE,
@@ -44,7 +44,7 @@ uniReg <- function(x,y,family=c("gaussian","binomial","cox"),
     this.call=match.call()
     family=match.arg(family)
     if(is.null(info)){ # user did not supply info
-        info = uniInfo(x,y,family,loob.nit,loob.eps,loo)
+        info = uniInfo(x,y,family,weights,loob.nit,loob.eps,loo)
     }
     else {
         if(!is.null(info$F))warning("You supplied info with a loo 'F' component; we ignore that, and use '$beta' and'$beta0' instead.")
@@ -57,13 +57,20 @@ uniReg <- function(x,y,family=c("gaussian","binomial","cox"),
         xp=x*outer(ones,info$beta)+outer(ones,info$beta0)
     }
     dimnames(xp)=dimnames(x)
-    fit = glmnet(xp,y,
+    ## np = dim(xp)
+    ## wide = np[1] <= np[2]
+    ## hardset = !missing(hard.zero)
+    ## if(wide&hard.zero){
+    ##     hard.zero = FALSE
+    ##     if(hardset)warning("Since p > n, hard.zero reset to FALSE")
+    ##     }
+    fit = glmnet(xp,y,weights=weights,
                     lower.limits=lower.limits,
                  family=family,standardize=standardize,...)
     lambda=fit$lambda
     if(hard.zero && min(lambda)>0){
         lambda = c(lambda,0)
-        fit = glmnet(xp,y,lambda=lambda,
+        fit = glmnet(xp,y,weights=weights,lambda=lambda,
                     lower.limits=lower.limits,
                     family=family,standardize=standardize,...)
         }

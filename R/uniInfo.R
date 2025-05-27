@@ -8,6 +8,7 @@
 #' @param y A response object, depending on the family. For "gaussian" it is just a response vector, for "binomial" a binary response vector, and for "cox" it is a Surv object (currently for right censored data).
 #' @param family one of "gaussian","binomial" or "cox". Currently only these families are implemented. In the future others
 #' will be added.
+#' @param weights Vector of non-negative weights. Default is NULL, which results in all weights equal to 1.
 #' @param nit Number of iterations if Newton steps are required (in "binomial" and "cox"). Default is 2. In principal more is better, but in some cases can run into convergence issues.
 #' @param eps A small number to regularize the hessian for "cox"; default is 0.0001.
 #' @param loo A logical, default=FALSE. If TRUE it computes the matrix of loo fits F.
@@ -31,56 +32,63 @@
 #' @export
 
 uniInfo = function(X,y,
-              family=c("gaussian","binomial","cox"),
-              nit = 2,
-              eps = 0.0001,
-              loo = FALSE){
+                   family=c("gaussian","binomial","cox"),
+                   weights=NULL,
+                   nit = 2,
+                   eps = 0.0001,
+                   loo = FALSE){
 ### Check for constant columns in X
     s = apply(X,2,sd)
     zerosd = s==0
     if(all(zerosd))stop("All features are constant")
     if(any(zerosd))X = X[,!zerosd,drop=FALSE]
+    if(is.null(weights))weights=rep(1,nrow(X))
     family=match.arg(family)
     info=switch(family,
-                "gaussian" = loob_ols(X,y,loo=loo),
-                "binomial" = loob_bin(X,y,nit=nit,loo=loo),
-                "cox" = loob_cox(X,y,nit=nit,eps=eps,loo=loo),
+                "gaussian" = loob_ols(X,y,w0=weights,loo=loo),
+                "binomial" = loob_bin(X,y,w0=weights,nit=nit,loo=loo),
+                "cox" = loob_cox(X,y,w0=weights,nit=nit,eps=eps,loo=loo),
                 stop("Family not yet implemented")
                 )
     if(any(zerosd))info = zerofix(info,zerosd)
     info
 }
-loob_ols = function(X,y, loo=FALSE){
+loob_ols = function(X,y,w0, loo=FALSE){
     ## LOO calculations for Gaussian model
     ## X is n x p model matrix, y is n-vector response
-    ## Returns the univariate regression coefficients for each column of X
-    ## if loo=TRUE, it also returns F the prevalidated fit matrix (one at a time)
+    ## w0 is weight vector, non-negative entries
+    ## Returns the weighted univariate regression coefficients for each column of X
+    ## if loo=TRUE, it also returns F the weighted prevalidated fit matrix (one at a time)
     n=length(y)
+    w0 = n*w0/sum(w0)
     y=as.vector(y)
-    s=apply(X,2,sd)*sqrt((n-1)/n)
-    xbar=apply(X,2,mean)
-    ybar=mean(y)
-    Xs=scale(X,xbar,s)
-    beta=drop(t(Xs)%*%y)/n
+    p = ncol(X)
+    W = outer(w0,rep(1,p))
+    Z = outer(y,rep(1,p))
+    wob = wlsu(X,W,Z)
     out = list()
     if(loo){
-    ones=rep(1,n)
-    Ri = n*(y -ybar-Xs*outer(ones,beta))/(n-1-Xs^2)
-    F = y - Ri
-    out$F=F}
-    beta=beta/s
-    beta0 = ybar-xbar*beta
-    c(out,list(beta=beta, beta0=beta0))
+        Ws = sqrt(W)
+        ones=rep(1,n)
+        Xs=Ws*with(wob,scale(X,xbar,s))
+        Ri = with(wob, n*(Ws*(Z-outer(ones,beta0))-Xs*outer(ones,beta))/(n-Ws^2-Xs^2))
+        F = Z-Ri/Ws
+        F[w0==0,] <- 0
+        out$F=F
     }
-
-loob_bin = function(X,y,nit=4, loo=FALSE){
+    with(wob, c(out,list( beta=beta/s, beta0 = beta0-xbar*beta/s)))
+    }
+loob_bin = function(X,y,w0,nit=2, loo=FALSE){
     ## LOO calculations for Binomial model
     ## X is n x p model matrix, y is n-vector binary response
+    ## w0 is weight vector, non-negative entries
     ## Returns F the prevalidated fit matrix (one at a time)
     ## also the univariate coefficients
     n=length(y)
     p = ncol(X)
     y=as.vector(y)
+    w0 = n*w0/sum(w0)
+    W0 = outer(w0,rep(1,p))
     ## Initialization
     mus=(y+.5)/2
     w=mus*(1-mus)
@@ -88,45 +96,32 @@ loob_bin = function(X,y,nit=4, loo=FALSE){
     z = etas +(y-mus)/w
     W =outer(w,rep(1,p))
     Z=outer(z,rep(1,p))
-    wlsu = function(X,W,Z){
-        totW = colSums(W)
-        xbar = colSums(W*X)/totW
-        Xm = X-outer(rep(1,n),xbar)
-        s = sqrt(colSums(W*Xm^2)/totW)
-        Xs = scale(Xm,FALSE,s)
-        beta= colSums(Xs*W*Z)/totW
-        beta0 = colSums(W*Z)/totW
-        Eta = outer(rep(1,n),beta0) + Xs*outer(rep(1,n),beta)
-        list(beta=beta,beta0=beta0,Eta=Eta,xbar=xbar,s=s)
-    }
-    wob = wlsu(X,W,Z)
+   wob = wlsu(X,W*W0,Z)
     iter=1
     while(iter < nit){
         iter=iter+1
         Mus = 1/(1 + exp(-wob$Eta))
         W=Mus*(1-Mus)
         Z = wob$Eta + (outer(y,rep(1,p))-Mus)/W
-        wob = wlsu(X,W,Z)
+        wob = wlsu(X,W*W0,Z)
     }
     out=list()
     if(loo){
-        Ws = sqrt(scale(W,FALSE,colSums(W)/n))
+        Ws=W*W0
+        Ws = sqrt(scale(Ws,FALSE,colSums(Ws)/n))
         ones=rep(1,n)
         Xs=Ws*with(wob,scale(X,xbar,s))
         Ri = with(wob, n*(Ws*(Z-outer(ones,beta0))-Xs*outer(ones,beta))/(n-Ws^2-Xs^2))
         F = Z-Ri/Ws
+        F[w0==0,] <- wob$Eta[w0==0,]
         isna=is.na(F)
-        if(any(isna)){
-            wh=apply(isna,2,any)
-            F[,wh]=0
-        }
+        if(any(isna)) F[isna]=wob$Eta[isna]
         out$F=F
     }
     with(wob, c(out,list( beta=beta/s, beta0 = beta0-xbar*beta/s)))
 }
 
-
-loob_cox = function(X,y,nit=4,eps=0.0001,loo=FALSE){
+loob_cox = function(X,y,w0,nit=4,eps=0.0001,loo=FALSE){
     ## LOO calculations for Cox PH survival model
     ## X is n x p model matrix, y is Surv  object as expected by glmnet
     ## Currently we do right censored, so y should have first column time and second column status
@@ -138,6 +133,9 @@ loob_cox = function(X,y,nit=4,eps=0.0001,loo=FALSE){
     time <- y[, 1]
     d    <- y[, 2]
     n=length(time)
+    w0 = n*w0/sum(w0)
+    W0 = outer(w0,rep(1,p))
+
     ## Initialization
     Eta=matrix(0,n,p)
     gradob=coxgradu(Eta, time,d)
@@ -149,31 +147,42 @@ loob_cox = function(X,y,nit=4,eps=0.0001,loo=FALSE){
         Eta = X*outer(rep(1,n),beta)
         list(beta=beta,Eta=Eta)
     }
-    wob = wlsu_ni(X,W,Z)
+    wob = wlsu_ni(X,W*W0,Z)
     iter=1
     while(iter < nit){
         iter=iter+1
         gradob = coxgradu(wob$Eta,time,d,o=o)
         W = pmax(-gradob$diag_hessian,eps)
         Z = wob$Eta + gradob$grad/W
-        wob = wlsu_ni(X,W,Z)
+        wob = wlsu_ni(X,W*W0,Z)
     }
     out=list()
     if(loo){
-        X2w = X*X*W
+        X2w = X*X*W*W0
         X2w = scale(X2w,FALSE,colSums(X2w))
         Ri = (Z-X*outer(rep(1,n),wob$beta))/(1-X2w)
         F=Z-Ri
+        F[w0==0,] <- wob$Eta[w0==0,]
         isna=is.na(F)
-        if(any(isna)){
-            wh=apply(isna,2,any)
-            F[,wh]=0
-        }
+        if(any(isna)) F[isna]=wob$Eta[isna]
         out$F=F
     }
-    c(out,list(beta=wob$beta, beta0 = rep(0,p)))
+   c(out,list(beta=wob$beta, beta0 = rep(0,p)))
 }
 
+
+wlsu <- function(X,W,Z){
+    n=nrow(X)
+    totW = colSums(W)
+    xbar = colSums(W*X)/totW
+    Xm = X-outer(rep(1,n),xbar)
+    s = sqrt(colSums(W*Xm^2)/totW)
+    Xs = scale(Xm,FALSE,s)
+    beta= colSums(Xs*W*Z)/totW
+    beta0 = colSums(W*Z)/totW
+    Eta = outer(rep(1,n),beta0) + Xs*outer(rep(1,n),beta)
+    list(beta=beta,beta0=beta0,Eta=Eta,xbar=xbar,s=s)
+}
 
 coxgradu <- function(eta, time,d, w, o){
     ## eta is a n x p matrix of univariate cox fits
