@@ -1,11 +1,13 @@
 #' Simulate data for use in uniLasso and uniReg
-#' @param example which of the prepackaged examples to use. Choices are "low-SNR","medium-SNR","high-SNR","home-court","two-class","counter-example", as described in the uniLasso paper.
-#' @param wide logical variable which determines if p> n (default) or not.
-#' @return a list with components "x", "y", "xtest", "ytest", "mutest", and "sigma".
+#' We use some standard examples in our uniLasso paper, and for convenience we provide generators for these datasets.
+#' @param example which of the prepackaged examples to use. Choices are "low-SNR","medium-SNR","high-SNR","home-court","two-class","counter-example", as described in the uniLasso paper. The three SNRs used are 0.5 (low), 1.0 (medium) and 2.0 (high) (also used for home-court). The training sizes for the first four are 300, and test sizes 3000.
+#' @param wide logical variable which determines if p>n (default, 1000) or not (100).
+#' This function calls worker functions simulate_gaussian(), simulate_two-class(), and simulate_counterexample(), which are currently not documented.
+#' @return a list with components "x", "y", "xtest", "ytest", "mutest", and "sigma", where "mutest" is the true test mean, and "ytest <- mutest + rnorm(3000)*sigma."
 #' @examples
 #' dat = simulate_uniLasso("high-SNR")
 #' fit = cv.uniLasso(dat$x, dat$y)
-#' mse = mean( (predict(fit, dat$xtest)- dat$ytest)^2)
+#' mse = mean( (predict(fit, dat$xtest)- dat$mutest)^2)
 #' @export
 
 simulate_uniLasso <- function(
