@@ -77,7 +77,7 @@
 #' # Binomial response
 #'
 #' yb =as.numeric(y>0)
-#' cvfitb = cv.uniLasso(x, y)
+#' cvfitb = cv.uniLasso(x, y, family="binomial")
 #' predict(cvfitb, xtest[1:10,], type="response") # predict at default s = "lambda.1se"
 #'
 #'
