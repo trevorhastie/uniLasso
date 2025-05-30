@@ -46,6 +46,7 @@
 #'
 #' # Gaussian data, p=1000, n=300, SNR=1  "medium SNR"
 #' # use the built-in simulate function to create Gaussian data
+#' set.seed(101)
 #' data <- simulate_uniLasso("medium-SNR")
 #' attach(data) # has components "x","y","xtest","ytest","mutest","sigma"
 #' pfit <- polish.uniLasso(x,y)

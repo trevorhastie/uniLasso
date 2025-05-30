@@ -18,7 +18,7 @@ simulate_uniLasso(
 This function calls worker functions simulate_gaussian(), simulate_two-class(), and simulate_counterexample(), which are currently not documented.}
 }
 \value{
-a list with components "x", "y", "xtest", "ytest", "mutest", and "sigma", where "mutest" is the true test mean, and "ytest <- mutest + rnorm(3000)*sigma."
+a list with components "x", "y", "xtest", "ytest", "mutest", and "sigma", where "mutest" is the true test mean, and "ytest <- mutest + rnorm(nrow(xtest))*sigma."
 }
 \description{
 Simulate data for use in uniLasso and uniReg
