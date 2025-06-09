@@ -48,6 +48,7 @@ uniReg <- function(x,y,family=c("gaussian","binomial","cox"),weights=NULL,
     }
     else {
         if(!is.null(info$F))warning("You supplied info with a loo 'F' component; we ignore that, and use '$beta' and'$beta0' instead.")
+        if(is.null(info$beta0))info$beta0=rep(0,length(info$beta))# beta0 is irrelevant here
         loo=FALSE # we cannot trust the supplied info to give the right number of rows
         }
     if(loo)
@@ -57,13 +58,6 @@ uniReg <- function(x,y,family=c("gaussian","binomial","cox"),weights=NULL,
         xp=x*outer(ones,info$beta)+outer(ones,info$beta0)
     }
     dimnames(xp)=dimnames(x)
-    ## np = dim(xp)
-    ## wide = np[1] <= np[2]
-    ## hardset = !missing(hard.zero)
-    ## if(wide&hard.zero){
-    ##     hard.zero = FALSE
-    ##     if(hardset)warning("Since p > n, hard.zero reset to FALSE")
-    ##     }
     fit = glmnet(xp,y,weights=weights,
                     lower.limits=lower.limits,
                  family=family,standardize=standardize,...)
