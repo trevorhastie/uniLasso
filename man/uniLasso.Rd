@@ -124,7 +124,8 @@ y <- x \%*\% beta + rnorm(n)*sigma
 ci <- ci.uniReg(x, y, B=100)
 print(ci)
 
-# Gaussian model
+# uniLasso usage
+# Default uniLasso usage for Gaussian data
 
 sigma =3
 set.seed(1)
@@ -134,8 +135,6 @@ beta <- matrix(c(rep(2, 5), rep(0, 15)), ncol = 1)
 y <- x \%*\% beta + rnorm(n)*sigma
 xtest=matrix(rnorm(n * p), n, p)
 ytest <- xtest \%*\% beta + rnorm(n)*sigma
-
-# Default usage
 
 fit <- uniLasso(x, y)
 plot(fit)
@@ -148,12 +147,11 @@ info = uniInfo(x[cset,],y[cset])
 fit_two_stage <- uniLasso(x[-cset,], y[-cset], info = info)
 plot(fit_two_stage)
 
-# Binomial response
+# Binomial response uniLasso
 
 yb =as.numeric(y>0)
 fitb = uniLasso(x, y)
 predict(fitb, xtest[1:10,], s=1, type="response")
-
 
 # uniLasso with same positivity constraints, but starting `beta`
 # from univariate fits on the same data. With loo=FALSE, does not tend to do as well,
@@ -168,7 +166,7 @@ predict(fitb, xtest[1:10,], s=1, type="response")
  fit_adapt <- uniLasso(x, y, loo = FALSE, lower.limits = -Inf)
  plot(fit_adapt)
 
-# Cox response
+# Cox response uniLasso
 
 set.seed(10101)
 N = 1000

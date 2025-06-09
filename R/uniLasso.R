@@ -46,7 +46,8 @@
 #' They are  \code{beta0} and \code{beta}, the intercepts and slopes for the usual (non-LOO) univariate fits from stage 1.
 
 #' @examples
-#' # Gaussian model
+#' # uniLasso usage
+#' # Default uniLasso usage for Gaussian data
 #'
 #' sigma =3
 #' set.seed(1)
@@ -56,8 +57,6 @@
 #' y <- x %*% beta + rnorm(n)*sigma
 #' xtest=matrix(rnorm(n * p), n, p)
 #' ytest <- xtest %*% beta + rnorm(n)*sigma
-#'
-#' # Default usage
 #'
 #' fit <- uniLasso(x, y)
 #' plot(fit)
@@ -70,12 +69,11 @@
 #' fit_two_stage <- uniLasso(x[-cset,], y[-cset], info = info)
 #' plot(fit_two_stage)
 #'
-#' # Binomial response
+#' # Binomial response uniLasso
 #'
 #' yb =as.numeric(y>0)
 #' fitb = uniLasso(x, y)
 #' predict(fitb, xtest[1:10,], s=1, type="response")
-#'
 #'
 #' # uniLasso with same positivity constraints, but starting `beta`
 #' # from univariate fits on the same data. With loo=FALSE, does not tend to do as well,
@@ -90,7 +88,7 @@
 #'  fit_adapt <- uniLasso(x, y, loo = FALSE, lower.limits = -Inf)
 #'  plot(fit_adapt)
 #'
-#' # Cox response
+#' # Cox response uniLasso
 #'
 #' set.seed(10101)
 #' N = 1000

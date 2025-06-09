@@ -100,7 +100,8 @@ a \code{'cv.glmnet object'}.
 \code{lower.limits = 0} means \code{uniLasso} constrains the sign of the coefs in the second round to be that of the univariate fits.
 }
 \examples{
-# Gaussian model
+# cv.uniLasso examples
+# Default usage with Gaussian data
 
 sigma =3
 set.seed(1)
@@ -110,8 +111,6 @@ beta <- matrix(c(rep(2, 5), rep(0, 15)), ncol = 1)
 y <- x \%*\% beta + rnorm(n)*sigma
 xtest=matrix(rnorm(n * p), n, p)
 ytest <- xtest \%*\% beta + rnorm(n)*sigma
-
-# Default usage
 
 cvfit <- cv.uniLasso(x, y)
 plot(cvfit)
@@ -124,7 +123,7 @@ info = uniInfo(x[cset,],y[cset])
 cvfit_two_stage <- cv.uniLasso(x[-cset,], y[-cset], info = info)
 plot(cvfit_two_stage)
 
-# Binomial response
+# Binomial response cv.uniLasso
 
 yb =as.numeric(y>0)
 cvfitb = cv.uniLasso(x, yb, family="binomial")
@@ -144,7 +143,7 @@ predict(cvfitb, xtest[1:10,], type="response") # predict at default s = "lambda.
  cvfit_adapt <- cv.uniLasso(x, y, loo = FALSE, lower.limits = -Inf)
  plot(cvfit_adapt)
 
-# Cox response
+# Cox response cv.uniLasso
 
 set.seed(10101)
 N = 1000
