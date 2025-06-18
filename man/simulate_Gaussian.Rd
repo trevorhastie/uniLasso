@@ -2,8 +2,7 @@
 % Please edit documentation in R/simulate.R
 \name{simulate_Gaussian}
 \alias{simulate_Gaussian}
-\title{simulate Gaussian data
-A simulator that builds a training and test set with particular characteristics, as used in our "uniLasso" paper.}
+\title{simulate Gaussian data}
 \usage{
 simulate_Gaussian(
   ntrain = 300,
@@ -28,13 +27,12 @@ simulate_Gaussian(
 
 \item{sparsity}{fraction of variables with nonzero coefficients.}
 
-\item{homecourt}{logical; if \code{TRUE} then correlated features, and nonzero coefficients spaced 2 features apart.}
+\item{homecourt}{logical; if \code{TRUE} then correlated features, with a special boost for large coefficients, mimicking the uniLasso two-stage algorithm.}
 }
 \value{
 a list with components "x", "y", "xtest", "ytest", "mutest", and "sigma", where "mutest" is the true test mean, and "ytest <- mutest + rnorm(ntest)*sigma."
 }
 \description{
-simulate Gaussian data
 A simulator that builds a training and test set with particular characteristics, as used in our "uniLasso" paper.
 }
 \examples{

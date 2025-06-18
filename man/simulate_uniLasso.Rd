@@ -2,8 +2,7 @@
 % Please edit documentation in R/simulate.R
 \name{simulate_uniLasso}
 \alias{simulate_uniLasso}
-\title{Simulate data for use in uniLasso and uniReg
-We use some standard examples in our uniLasso paper, and for convenience we provide generators for these datasets.}
+\title{Simulate data for use in uniLasso and uniReg}
 \usage{
 simulate_uniLasso(
   example = c("low-SNR", "medium-SNR", "high-SNR", "home-court", "two-class",
@@ -21,7 +20,6 @@ This function calls worker functions simulate_gaussian(), simulate_two-class(), 
 a list with components "x", "y", "xtest", "ytest", "mutest", and "sigma", where "mutest" is the true test mean, and "ytest <- mutest + rnorm(nrow(xtest))*sigma."
 }
 \description{
-Simulate data for use in uniLasso and uniReg
 We use some standard examples in our uniLasso paper, and for convenience we provide generators for these datasets.
 }
 \examples{

@@ -34,7 +34,7 @@ simulate_uniLasso <- function(
 #' @param snr desired SNR (signal-to-noise ratio).
 #' @param rho for \code{homecourt=TRUE} 'rho' controls the autocorrelation between variables. Variables k units apart have correlation \code{rho^k}.
 #' @param sparsity fraction of variables with nonzero coefficients.
-#' @param homecourt logical; if \code{TRUE} then correlated features, and nonzero coefficients spaced 2 features apart.
+#' @param homecourt logical; if \code{TRUE} then correlated features, with a special boost for large coefficients, mimicking the uniLasso two-stage algorithm.
 #' @return a list with components "x", "y", "xtest", "ytest", "mutest", and "sigma", where "mutest" is the true test mean, and "ytest <- mutest + rnorm(ntest)*sigma."
 #' @examples
 #' dat = simulate_Gaussian(300,3000,p=500,snr=1.2)
@@ -56,9 +56,17 @@ simulate_Gaussian=function(ntrain = 300,
         Sigma=rho^abs(outer(1:p,1:p,"-"))
         x = mvrnorm(n,mu=rep(0,p),Sigma)
         nonzero = pmin(nonzero,floor(p/2))
-        nonzero_indices = seq(from=1,by=2,length=nonzero)
-        beta=double(p)
-        beta[nonzero_indices] <- runif(nonzero, 0.5, 2.0)
+        nonzero_indices = seq(from = 1,to=nonzero)
+        beta = double(p)
+        beta[nonzero_indices] <- runif(nonzero, 0.5, 2)
+        mu = x %*% beta
+        sdmu = sd(mu)
+        mu = mu/sd(mu)
+        beta=beta/sdmu
+        sigma = sqrt(1/snr)
+        y = mu + sigma * rnorm(n)
+        info = uniInfo(x,y)
+        beta=beta*abs(info$beta)
     } else{
         u=rnorm(n)
         fac=sample(c(-1,1),size=p,replace=TRUE)
@@ -66,8 +74,10 @@ simulate_Gaussian=function(ntrain = 300,
         beta=c(rnorm(nonzero),rep(0,p-nonzero))
         }
     mu=x%*%beta
-    sigma = drop(sqrt(var(mu)/snr))
-    y=mu+sigma*rnorm(n)
+    sdmu = sd(mu)
+    mu = mu/sd(mu)
+    sigma = sqrt(1/snr)
+    y = mu + sigma * rnorm(n)
     d = list(x=x,y=y,mu=mu,sigma=sigma)
     traintest_split(d, ntrain=ntrain)
 }
