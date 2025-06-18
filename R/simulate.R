@@ -1,4 +1,5 @@
 #' Simulate data for use in uniLasso and uniReg
+#'
 #' We use some standard examples in our uniLasso paper, and for convenience we provide generators for these datasets.
 #' @param example which of the prepackaged examples to use. Choices are "low-SNR","medium-SNR","high-SNR","home-court","two-class","counter-example", as described in the uniLasso paper. The three SNRs used are 0.5 (low), 1.0 (medium) and 2.0 (high) (also used for home-court). The training sizes for the first four are 300, and test sizes 3000.
 #' @param wide logical variable which determines if p>n (default, 1000) or not (100).
@@ -25,6 +26,7 @@ simulate_uniLasso <- function(
 }
 
 #' simulate Gaussian data
+#'
 #' A simulator that builds a training and test set with particular characteristics, as used in our "uniLasso" paper.
 #' @param ntrain number of training examples.
 #' @param ntest number of test examples.
@@ -70,6 +72,7 @@ simulate_Gaussian=function(ntrain = 300,
     traintest_split(d, ntrain=ntrain)
 }
 #' simulate two class data
+#'
 #' @param ntrain number of training examples.
 #' @param ntest number of test examples.
 #' @param wide logical. If TRUE \code{p=500}, else \code{p=100}.
@@ -90,6 +93,7 @@ simulate_twoclass=function(ntrain,ntest,wide=TRUE){
         traintest_split(data, ntrain=ntrain)
     }
 #' simulate counterexample data
+#'
 #' A particular counterexample where the first two features are strongly positively correlated,
 #' yet they have coefficients of opposite sign in a multiple regression.
 #' @param ntrain number of training examples.
