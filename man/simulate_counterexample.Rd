@@ -2,9 +2,7 @@
 % Please edit documentation in R/simulate.R
 \name{simulate_counterexample}
 \alias{simulate_counterexample}
-\title{simulate counterexample data
-A particular counterexample where the first two features are strongly positively correlated,
-yet they have coefficients of opposite sign in a multiple regression.}
+\title{simulate counterexample data}
 \usage{
 simulate_counterexample(ntrain, ntest)
 }
@@ -17,7 +15,6 @@ simulate_counterexample(ntrain, ntest)
 a list with components "x", "y", "xtest", "ytest", "mutest", and "sigma", where "mutest" is the true test mean, and "ytest <- mutest + rnorm(ntest)*sigma."
 }
 \description{
-simulate counterexample data
 A particular counterexample where the first two features are strongly positively correlated,
 yet they have coefficients of opposite sign in a multiple regression.
 }
