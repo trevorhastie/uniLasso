@@ -1,0 +1,27 @@
+context("Cox")
+
+
+set.seed(10101)
+N = 1000
+p = 30
+nzc = p/3
+x = matrix(rnorm(N * p), N, p)
+beta = rnorm(nzc)
+fx = x[, seq(nzc)] %*% beta/3
+hx = exp(fx)
+ty = rexp(N, hx)
+tcens = rbinom(n = N, prob = 0.3, size = 1)  # censoring indicator
+y = cbind(time = ty, status = 1 - tcens)  # y=Surv(ty,1-tcens) with library(survival)
+
+fitc = uniLasso(x, y, family = "cox")
+cvfitc = cv.uniLasso(x, y, family = "cox")
+
+objects = enlist(fitc,cvfitc)
+###saveRDS(objects, "saved_results/test_Cox.RDS")
+
+expected  <- readRDS("saved_results/test_Cox.RDS")
+for (x in names(objects)) {
+    cat(sprintf("Testing %s\n", x))
+    expect_equal(objects[[x]], expected[[x]])
+}
+

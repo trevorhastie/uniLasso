@@ -5,7 +5,7 @@
 #' Currently this function can accommodate "gaussian", "binomial", and "Cox" families.
 #'
 #' @param X An n x p feature matrix
-#' @param y A response object, depending on the family. For "gaussian" it is just a response vector, for "binomial" a binary response vector, and for "cox" it is a Surv object (currently for right censored data).
+#' @param y A response object, depending on the family. For "gaussian" it is just a response vector. For "binomial" either a binary vector, a two level factor, or a two column non-negative matrix with rows summing to 1. For "cox" it is a Surv object (currently for right censored data).
 #' @param family one of "gaussian","binomial" or "cox". Currently only these families are implemented. In the future others
 #' will be added.
 #' @param weights Vector of non-negative weights. Default is NULL, which results in all weights equal to 1.
@@ -80,13 +80,23 @@ loob_ols = function(X,y,w0, loo=FALSE){
     }
 loob_bin = function(X,y,w0,nit=2, loo=FALSE){
     ## LOO calculations for Binomial model
-    ## X is n x p model matrix, y is n-vector binary response
+    ## X is n x p model matrix
+    ## y is either a two-column matrix, a binary vector, or a two level factor
     ## w0 is weight vector, non-negative entries
     ## Returns F the prevalidated fit matrix (one at a time)
     ## also the univariate coefficients
-    n=length(y)
+    n = nrow(X)
     p = ncol(X)
-    y=as.vector(y)
+    ## check on y
+    yout=multY(y)
+    y=yout$y
+    nc=dim(y)
+    noo=nc[1]
+    if(noo!=n)stop("X and y have different number of rows in call to uniInfo",call.=FALSE)
+    nc=as.integer(nc[2])
+    if(nc!=2)stop("More than two classes detected")
+    y=y[,2]
+    if(!is.null(yout$wts))w0=w0*yout$wts
     w0 = n*w0/sum(w0)
     W0 = outer(w0,rep(1,p))
     ## Initialization
@@ -270,6 +280,33 @@ zerofix <- function(info, zerosd){
     infonew
 }
 
+multY <- function(y,minclass=0,warnclass=4){
+    ## Utility function for binomial and multinomial
+    ## This function takes y and produces a Y matrix
+    ## If it already provided a y matrix, it ensures that it is of the right kind,
+    ## and extracts a weight vector if appropriate.
+    nc=dim(y)
+if(is.null(nc)||nc[2]==1){
+    ## Need to construct a y matrix, and include the weights
+        y=as.factor(as.vector(y))
+        ntab=table(y)
+        nc=as.integer(length(ntab))
+        if(nc<=1)stop("only 1 unique value in y")
+        mincl=min(ntab)
+        if(mincl<=minclass)stop(paste0("one binomial/multinomial class has ",minclass," or less observations; not allowed"))
+        if(mincl<=warnclass)warning(paste0("one binomial/multinomial class has ",warnclass," or less observations; dangerous ground"))
+        list(y=diag(nc)[as.numeric(y),],wts=NULL)
+}else{
+    wt = rowSums(y)
+    if(any(wt!=1)){
+        wtp=wt
+        wtp[wt==0]=1
+        y=y/wtp
+    }
+    else wt=NULL
+    list(y=y,wts=wt)
+}
+}
 
 
 

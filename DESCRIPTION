@@ -2,7 +2,7 @@ Package: uniLasso
 Type: Package
 Title: Univariate-Guided Sparse Regression
 Version: 2.10
-Date: 2025-06-24
+Date: 2026-01-05
 Authors@R: c(
 	   person("Trevor", "Hastie",role=c("aut", "cre"), email = "hastie@stanford.edu"),
 	   person("Rob", "Tibshirani", role=c("aut")),
@@ -15,4 +15,5 @@ NeedsCompilation: no
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Depends: glmnet, stats, R (>= 3.6.0)
+suggests: testthat
 Imports: methods, utils, MASS
