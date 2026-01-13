@@ -1,19 +1,20 @@
 Package: uniLasso
 Type: Package
 Title: Univariate-Guided Sparse Regression
-Version: 2.10
-Date: 2026-01-05
+Version: 2.11
+Date: 2026-01-13
 Authors@R: c(
 	   person("Trevor", "Hastie",role=c("aut", "cre"), email = "hastie@stanford.edu"),
 	   person("Rob", "Tibshirani", role=c("aut")),
 	   person("Sourav","Chatterjee",role=c("aut"))
 	     )
-Description: Fit a univariate-guided sparse regression (lasso), by a two-stage procedure. The first stage fits p separate univariate models to the response. The second stage gives more weight to the more important univariate features, and preserves their signs. Conveniently, it returns an objects that inherits from class 'glmnet', so that all of the methods for 'glmnet' are available. See <doi:10.48550/arXiv.2501.18360> for details.
+Depends: glmnet, stats, R (>= 3.6.0)
+Imports: methods, utils, MASS
+Suggests: testthat
+Description: Fit a univariate-guided sparse regression (lasso), by a two-stage procedure. The first stage fits p separate univariate models to the response. The second stage gives more weight to the more important univariate features, and preserves their signs. Conveniently, it returns an objects that inherits from class 'glmnet', so that all of the methods for 'glmnet' are available. See <doi:10.1162/99608f92.c79ff6db> for details.
 Encoding: UTF-8
 License: GPL-2
 NeedsCompilation: no
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
-Depends: glmnet, stats, R (>= 3.6.0)
-suggests: testthat
-Imports: methods, utils, MASS
+

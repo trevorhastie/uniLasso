@@ -10,9 +10,10 @@
 #' will be added.
 #' @param weights Vector of non-negative weights. Default is NULL, which results in all weights equal to 1.
 #' @param nit Number of iterations if Newton steps are required (in "binomial" and "cox"). Default is 2. In principal more is better, but in some cases can run into convergence issues.
-#' @param eps A small number to regularize the hessian for "cox"; default is 0.0001.
 #' @param loo A logical, default=FALSE. If TRUE it computes the matrix of loo fits F.
-#' @return an list with components \code{$beta} and \code{$beta0}, and if \code{loo=TRUE}, a n x p matrix \code{F} with the loo fits.
+#' @param ridge A positive number that penalizes the square of the slope parameters. This is useful if some of the variables are nearly constant, or have very small variances. Default is 0.0.
+#' @param eps A small number to regularize the hessian for "cox"; default is 1e-6.
+#' @return a list with components \code{$beta} and \code{$beta0}, and if \code{loo=TRUE}, a n x p matrix \code{F} with the loo fits.
 #' @examples
 #' # Gaussian model
 #' set.seed(1)
@@ -35,8 +36,9 @@ uniInfo = function(X,y,
                    family=c("gaussian","binomial","cox"),
                    weights=NULL,
                    nit = 2,
-                   eps = 0.0001,
-                   loo = FALSE){
+                   loo = FALSE,
+                   ridge=0.0,
+                   eps = 1e-6){
 ### Check for constant columns in X
     s = apply(X,2,sd)
     zerosd = s==0
@@ -45,44 +47,61 @@ uniInfo = function(X,y,
     if(is.null(weights))weights=rep(1,nrow(X))
     family=match.arg(family)
     info=switch(family,
-                "gaussian" = loob_ols(X,y,w0=weights,loo=loo),
-                "binomial" = loob_bin(X,y,w0=weights,nit=nit,loo=loo),
-                "cox" = loob_cox(X,y,w0=weights,nit=nit,eps=eps,loo=loo),
+                "gaussian" = loob_ols(X,y,w0=weights,loo=loo,ridge=ridge),
+                "binomial" = loob_bin(X,y,w0=weights,nit=nit,loo=loo,ridge=ridge),
+                "cox" = loob_cox(X,y,w0=weights,nit=nit,loo=loo,ridge=ridge,eps=eps),
                 stop("Family not yet implemented")
                 )
     if(any(zerosd))info = zerofix(info,zerosd)
     info
 }
-loob_ols = function(X,y,w0, loo=FALSE){
+
+
+
+loob_ols = function(X,y,w0, loo=FALSE, ridge=0){
     ## LOO calculations for Gaussian model
     ## X is n x p model matrix, y is n-vector response
     ## w0 is weight vector, non-negative entries
     ## Returns the weighted univariate regression coefficients for each column of X
     ## if loo=TRUE, it also returns F the weighted prevalidated fit matrix (one at a time)
     n=length(y)
-    w0 = n*w0/sum(w0)
+    w0 = w0/sum(w0) # note - the weights sum to 1
     y=as.vector(y)
     p = ncol(X)
     W = outer(w0,rep(1,p))
     Z = outer(y,rep(1,p))
-    wob = wlsu(X,W,Z)
+    wob = wlsu(X,W,Z,ridge=ridge)
     out = list()
     if(loo){
-        Ws = sqrt(W)
-        ones=rep(1,n)
-        Xs=Ws*with(wob,scale(X,xbar,s))
-        Ri = with(wob, n*(Ws*(Z-outer(ones,beta0))-Xs*outer(ones,beta))/(n-Ws^2-Xs^2))
-        F = Z-Ri/Ws
-        F[w0==0,] <- 0
+        ones = rep(1,n)
+        Wxx = W*(X-outer(ones,wob$xbar))^2
+        sWxx = colSums(Wxx)
+        H = W + Wxx/outer(ones,sWxx+ridge)# Here we know weights sum to 1
+        F = (wob$Eta-H*Z)/(1-H)
         out$F=F
     }
-    with(wob, c(out,list( beta=beta/s, beta0 = beta0-xbar*beta/s)))
+    c(out,wob[c("beta", "beta0")])
     }
-loob_bin = function(X,y,w0,nit=2, loo=FALSE){
+wlsu <- function(X,W,Z,ridge=0){
+    n=nrow(X)
+    ones=rep(1,n)
+    sW = colSums(W)
+    xbar = colSums(W*X)/sW
+    Xm = X-outer(ones,xbar)
+    xxp = colSums(W*Xm^2) + ridge
+    beta= colSums(Xm*W*Z)/xxp
+    beta0 = colSums(W*Z)/sW
+    Eta = outer(ones,beta0) + Xm*outer(ones,beta)
+    list(beta=beta,beta0=beta0-xbar*beta,Eta=Eta,xbar=xbar)
+}
+
+
+loob_bin = function(X,y,w0,nit=2, loo=FALSE, ridge=0){
     ## LOO calculations for Binomial model
     ## X is n x p model matrix
     ## y is either a two-column matrix, a binary vector, or a two level factor
     ## w0 is weight vector, non-negative entries
+    ## ridge is a ridge parameter
     ## Returns F the prevalidated fit matrix (one at a time)
     ## also the univariate coefficients
     n = nrow(X)
@@ -97,7 +116,7 @@ loob_bin = function(X,y,w0,nit=2, loo=FALSE){
     if(nc!=2)stop("More than two classes detected")
     y=y[,2]
     if(!is.null(yout$wts))w0=w0*yout$wts
-    w0 = n*w0/sum(w0)
+    w0 = w0/sum(w0)
     W0 = outer(w0,rep(1,p))
     ## Initialization
     mus=(y+.5)/2
@@ -106,71 +125,105 @@ loob_bin = function(X,y,w0,nit=2, loo=FALSE){
     z = etas +(y-mus)/w
     W =outer(w,rep(1,p))
     Z=outer(z,rep(1,p))
-   wob = wlsu(X,W*W0,Z)
+   wob = wlsu(X,W*W0,Z,ridge)
     iter=1
     while(iter < nit){
         iter=iter+1
         Mus = 1/(1 + exp(-wob$Eta))
         W=Mus*(1-Mus)
         Z = wob$Eta + (outer(y,rep(1,p))-Mus)/W
-        wob = wlsu(X,W*W0,Z)
+        wob = wlsu(X,W*W0,Z,ridge)
     }
     out=list()
     if(loo){
+        ones = rep(1,n)
         Ws=W*W0
-        Ws = sqrt(scale(Ws,FALSE,colSums(Ws)/n))
-        ones=rep(1,n)
-        Xs=Ws*with(wob,scale(X,xbar,s))
-        Ri = with(wob, n*(Ws*(Z-outer(ones,beta0))-Xs*outer(ones,beta))/(n-Ws^2-Xs^2))
-        F = Z-Ri/Ws
-        F[w0==0,] <- wob$Eta[w0==0,]
+        sWs = colSums(Ws)
+        Wxx = Ws*(X-outer(ones,wob$xbar))^2
+        sWxx = colSums(Wxx)
+        H = Ws/outer(ones,sWs) + Wxx/outer(ones,sWxx+ridge)
+        F = (wob$Eta-H*Z)/(1-H)
         isna=is.na(F)
         if(any(isna)) F[isna]=wob$Eta[isna]
         out$F=F
     }
-    with(wob, c(out,list( beta=beta/s, beta0 = beta0-xbar*beta/s)))
+    c(out,wob[c("beta", "beta0")])
 }
 
-loob_cox = function(X,y,w0,nit=4,eps=0.0001,loo=FALSE){
+
+
+
+
+multY <- function(y,minclass=0,warnclass=4){
+    ## Utility function for binomial and multinomial
+    ## This function takes y and produces a Y matrix
+    ## If it already provided a y matrix, it ensures that it is of the right kind,
+    ## and extracts a weight vector if appropriate.
+    nc=dim(y)
+if(is.null(nc)||nc[2]==1){
+    ## Need to construct a y matrix, and include the weights
+        y=as.factor(as.vector(y))
+        ntab=table(y)
+        nc=as.integer(length(ntab))
+        if(nc<=1)stop("only 1 unique value in y")
+        mincl=min(ntab)
+        if(mincl<=minclass)stop(paste0("one binomial/multinomial class has ",minclass," or less observations; not allowed"))
+        if(mincl<=warnclass)warning(paste0("one binomial/multinomial class has ",warnclass," or less observations; dangerous ground"))
+        list(y=diag(nc)[as.numeric(y),],wts=NULL)
+}else{
+    wt = rowSums(y)
+    if(any(wt!=1)){
+        wtp=wt
+        wtp[wt==0]=1
+        y=y/wtp
+    }
+    else wt=NULL
+    list(y=y,wts=wt)
+}
+}
+
+loob_cox = function(X,y,w0,nit=4,loo=FALSE, ridge=0,eps=1e-6){
     ## LOO calculations for Cox PH survival model
     ## X is n x p model matrix, y is Surv  object as expected by glmnet
     ## Currently we do right censored, so y should have first column time and second column status
     ## In addition, we handle ties using Breslow method
     ## Returns F the prevalidated fit matrix (one at a time)
     ## also the univariate coefficients
+    ## epse is a parameter that protects against division by zero
 
     p = ncol(X)
     time <- y[, 1]
     d    <- y[, 2]
     n=length(time)
-    w0 = n*w0/sum(w0)
+    ones=rep(1,n)
+    w0 = w0/sum(w0)
     W0 = outer(w0,rep(1,p))
 
     ## Initialization
     Eta=matrix(0,n,p)
-    gradob=coxgradu(Eta, time,d)
+    gradob=coxgradu(Eta, time, d)
     o = gradob$o
-    W = pmax(-gradob$diag_hessian,eps)
-    Z = Eta + gradob$grad/W
-    wlsu_ni = function(X,W,Z){
-        beta= colSums(X*W*Z)/colSums(X*X*W)
-        Eta = X*outer(rep(1,n),beta)
+    W = -gradob$diag_hessian
+    Z = Eta + gradob$grad/pmax(W,eps)
+    wlsu_ni = function(X,W,Z,ridge=ridge){
+        beta= colSums(X*W*Z)/(colSums(X*X*W)+ridge)
+        Eta = X*outer(ones,beta)
         list(beta=beta,Eta=Eta)
     }
-    wob = wlsu_ni(X,W*W0,Z)
+    wob = wlsu_ni(X,W*W0,Z, ridge=ridge)
     iter=1
     while(iter < nit){
         iter=iter+1
         gradob = coxgradu(wob$Eta,time,d,o=o)
-        W = pmax(-gradob$diag_hessian,eps)
-        Z = wob$Eta + gradob$grad/W
-        wob = wlsu_ni(X,W*W0,Z)
+        W = -gradob$diag_hessian
+        Z = wob$Eta + gradob$grad/pmax(W,eps)
+        wob = wlsu_ni(X,W*W0,Z,ridge=ridge)
     }
     out=list()
     if(loo){
         X2w = X*X*W*W0
-        X2w = scale(X2w,FALSE,colSums(X2w))
-        Ri = (Z-X*outer(rep(1,n),wob$beta))/(1-X2w)
+        X2w = X2w/outer(ones,colSums(X2w)+ridge)
+        Ri = (Z-X*outer(ones,wob$beta))/(1-X2w)
         F=Z-Ri
         F[w0==0,] <- wob$Eta[w0==0,]
         isna=is.na(F)
@@ -181,18 +234,6 @@ loob_cox = function(X,y,w0,nit=4,eps=0.0001,loo=FALSE){
 }
 
 
-wlsu <- function(X,W,Z){
-    n=nrow(X)
-    totW = colSums(W)
-    xbar = colSums(W*X)/totW
-    Xm = X-outer(rep(1,n),xbar)
-    s = sqrt(colSums(W*Xm^2)/totW)
-    Xs = scale(Xm,FALSE,s)
-    beta= colSums(Xs*W*Z)/totW
-    beta0 = colSums(W*Z)/totW
-    Eta = outer(rep(1,n),beta0) + Xs*outer(rep(1,n),beta)
-    list(beta=beta,beta0=beta0,Eta=Eta,xbar=xbar,s=s)
-}
 
 coxgradu <- function(eta, time,d, w, o){
     ## eta is a n x p matrix of univariate cox fits
@@ -279,34 +320,4 @@ zerofix <- function(info, zerosd){
     }
     infonew
 }
-
-multY <- function(y,minclass=0,warnclass=4){
-    ## Utility function for binomial and multinomial
-    ## This function takes y and produces a Y matrix
-    ## If it already provided a y matrix, it ensures that it is of the right kind,
-    ## and extracts a weight vector if appropriate.
-    nc=dim(y)
-if(is.null(nc)||nc[2]==1){
-    ## Need to construct a y matrix, and include the weights
-        y=as.factor(as.vector(y))
-        ntab=table(y)
-        nc=as.integer(length(ntab))
-        if(nc<=1)stop("only 1 unique value in y")
-        mincl=min(ntab)
-        if(mincl<=minclass)stop(paste0("one binomial/multinomial class has ",minclass," or less observations; not allowed"))
-        if(mincl<=warnclass)warning(paste0("one binomial/multinomial class has ",warnclass," or less observations; dangerous ground"))
-        list(y=diag(nc)[as.numeric(y),],wts=NULL)
-}else{
-    wt = rowSums(y)
-    if(any(wt!=1)){
-        wtp=wt
-        wtp[wt==0]=1
-        y=y/wtp
-    }
-    else wt=NULL
-    list(y=y,wts=wt)
-}
-}
-
-
 

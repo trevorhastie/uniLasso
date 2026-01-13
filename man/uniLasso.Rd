@@ -26,7 +26,8 @@ uniLasso(
   standardize = FALSE,
   info = NULL,
   loob.nit = 2,
-  loob.eps = 1e-04,
+  loob.ridge = 0,
+  loob.eps = 1e-06,
   ...
 )
 
@@ -40,6 +41,7 @@ uniReg(
   standardize = FALSE,
   info = NULL,
   loob.nit = 2,
+  loob.ridge = 0,
   loob.eps = 1e-04,
   hard.zero = TRUE,
   ...
@@ -72,11 +74,13 @@ will be added.}
 
 \item{standardize}{input argument to glmnet for final non-negative lasso fit. Strongly recommend \code{standardize=FALSE} (default) since the univariate fit determines the correct scale for each variable.}
 
-\item{info}{Users can supply results of \code{uniInfo} on external datasets rather than compute them on the same data used to fit the model. If this is supplied, its \code{$betas} are used. Default is NULL.}
+\item{info}{Users can supply results of \code{uniInfo} on external datasets rather than compute them on the same data used to fit the model.}
 
 \item{loob.nit}{Number of Newton iterations for GLM or Cox in computing univariate linear predictors. Default is 2.}
 
-\item{loob.eps}{A small number used in regularizing the Hessian for the Cox model. Default is 0.0001.}
+\item{loob.ridge}{A nonnegative number to apply ridge penalization to the slope parameters. This is helpful if some of the variables are near constant or have very small standard deviations. Default is 0.0.}
+
+\item{loob.eps}{A small number used in regularizing the Hessian for the Cox model. Default is 1e-6.}
 
 \item{hard.zero}{if \code{TRUE} (default), the model fits the unpenalized regression. This is potentially unstable  when \code{p > n}. In this case \code{hard.zero = FALSE} might be preferable, and the model is then fit using the smallest value of \code{lambda} in the path.}
 

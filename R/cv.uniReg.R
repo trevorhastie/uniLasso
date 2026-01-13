@@ -41,13 +41,14 @@ cv.uniReg <- function(x,y,family=c("gaussian","binomial","cox"),weights=NULL,
                       standardize=FALSE,
                       info=NULL,
                       loob.nit=2,
-                      loob.eps=0.0001,
+                      loob.ridge=0.0,
+                      loob.eps=1e-6,
                       hard.zero = TRUE,
                       ...){
     this.call = match.call()
     family=match.arg(family)
     if(is.null(info)){ # user did not supply info
-        info = uniInfo(x,y,family,weights,loob.nit,loob.eps,loo)
+        info = uniInfo(x,y,family,weights,nit=loob.nit,loo=loo,ridge=loob.ridge,eps=loob.eps)
     }
     else {
         if(!is.null(info$F))warning("You supplied info with a loo 'F' component; we ignore that, and use '$beta' and'$beta0' instead.")

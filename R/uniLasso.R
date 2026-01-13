@@ -38,9 +38,10 @@
 #' \code{loo=FALSE} means it uses the univariate fitted predictor.
 #' @param lower.limits = 0 (default) means that uniLasso  constrains the sign of the coefs produced in  the second round to be the same as those in the univariate fits. (Since uniLasso uses the univariate _fits_ as features, a positivity constraint at the second stage is equivalent.)
 #' @param standardize input argument to glmnet for final non-negative lasso fit. Strongly recommend \code{standardize=FALSE} (default) since the univariate fit determines the correct scale for each variable.
-#' @param info Users can supply results of \code{uniInfo} on external datasets rather than compute them on the same data used to fit the model. If this is supplied, its \code{$betas} are used. Default is NULL.
+#' @param info Users can supply results of \code{uniInfo} on external datasets rather than compute them on the same data used to fit the model.
 #' @param loob.nit Number of Newton iterations for GLM or Cox in computing univariate linear predictors. Default is 2.
-#' @param loob.eps A small number used in regularizing the Hessian for the Cox model. Default is 0.0001.
+#' @param loob.ridge A nonnegative number to apply ridge penalization to the slope parameters. This is helpful if some of the variables are near constant or have very small standard deviations. Default is 0.0.
+#' @param loob.eps A small number used in regularizing the Hessian for the Cox model. Default is 1e-6.
 #' @param \ldots additional arguments passed to \code{glmnet}.
 #' @return An object that inherits from \code{"glmnet"}. There is one additional parameter returned, which is `info` and has two components.
 #' They are  \code{beta0} and \code{beta}, the intercepts and slopes for the usual (non-LOO) univariate fits from stage 1.
@@ -113,18 +114,20 @@ uniLasso <- function(x,y,family=c("gaussian","binomial","cox"),weights=NULL,
                       standardize=FALSE,
                       info=NULL,
                       loob.nit=2,
-                      loob.eps=0.0001,
+                      loob.ridge = 0.0,
+                      loob.eps=1e-6,
                       ...){
     this.call = match.call()
     family=match.arg(family)
     if(is.null(info)){ # user did not supply info
-        info = uniInfo(x,y,family,weights,loob.nit,loob.eps,loo)
+        info = uniInfo(x,y,family,weights,nit=loob.nit,loo=loo,ridge=loob.ridge,eps=loob.eps)
     }
     else {
-        if(!is.null(info$F))warning("You supplied info with a loo 'F' component; we ignore that, and use '$beta' and'$beta0' (if supplied) instead.")
-        if(is.null(info$beta0))info$beta0=rep(0,length(info$beta))# beta0 is irrelevant here
-        loo=FALSE # we cannot trust the supplied info to give the right number of rows
+        if(is.null(info$F)){
+            loo=FALSE
+            if(is.null(info$beta0))info$beta0=rep(0,length(info$beta))# beta0 is irrelevant here
         }
+    }
     if(loo)
         xp=info$F
     else {
