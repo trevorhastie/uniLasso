@@ -10,14 +10,15 @@ uniInfo(
   family = c("gaussian", "binomial", "cox"),
   weights = NULL,
   nit = 2,
-  eps = 1e-04,
-  loo = FALSE
+  loo = FALSE,
+  ridge = 0,
+  eps = 1e-06
 )
 }
 \arguments{
 \item{X}{An n x p feature matrix}
 
-\item{y}{A response object, depending on the family. For "gaussian" it is just a response vector, for "binomial" a binary response vector, and for "cox" it is a Surv object (currently for right censored data).}
+\item{y}{A response object, depending on the family. For "gaussian" it is just a response vector. For "binomial" either a binary vector, a two level factor, or a two column non-negative matrix with rows summing to 1. For "cox" it is a Surv object (currently for right censored data).}
 
 \item{family}{one of "gaussian","binomial" or "cox". Currently only these families are implemented. In the future others
 will be added.}
@@ -26,12 +27,14 @@ will be added.}
 
 \item{nit}{Number of iterations if Newton steps are required (in "binomial" and "cox"). Default is 2. In principal more is better, but in some cases can run into convergence issues.}
 
-\item{eps}{A small number to regularize the hessian for "cox"; default is 0.0001.}
-
 \item{loo}{A logical, default=FALSE. If TRUE it computes the matrix of loo fits F.}
+
+\item{ridge}{A positive number that penalizes the square of the slope parameters. This is useful if some of the variables are nearly constant, or have very small variances. Default is 0.0.}
+
+\item{eps}{A small number to regularize the hessian for "cox"; default is 1e-6.}
 }
 \value{
-an list with components \code{$beta} and \code{$beta0}, and if \code{loo=TRUE}, a n x p matrix \code{F} with the loo fits.
+a list with components \code{$beta} and \code{$beta0}, and if \code{loo=TRUE}, a n x p matrix \code{F} with the loo fits.
 }
 \description{
 Fit p separate univariate fits,  and if requested computes the loo fit matrix F.

@@ -38,19 +38,21 @@ uniReg <- function(x,y,family=c("gaussian","binomial","cox"),weights=NULL,
                    standardize=FALSE,
                    info=NULL,
                    loob.nit=2,
+                   loob.ridge=0.0,
                    loob.eps=0.0001,
                    hard.zero = TRUE,
                       ...){
     this.call=match.call()
     family=match.arg(family)
     if(is.null(info)){ # user did not supply info
-        info = uniInfo(x,y,family,weights,loob.nit,loob.eps,loo)
+        info = uniInfo(x,y,family,weights,loob.nit,loo,ridge=loob.ridge,eps=loob.eps)
     }
     else {
-        if(!is.null(info$F))warning("You supplied info with a loo 'F' component; we ignore that, and use '$beta' and'$beta0' instead.")
-        if(is.null(info$beta0))info$beta0=rep(0,length(info$beta))# beta0 is irrelevant here
-        loo=FALSE # we cannot trust the supplied info to give the right number of rows
+        if(!is.null(info$F)){
+            loo=FALSE
+            if(is.null(info$beta0))info$beta0=rep(0,length(info$beta))# beta0 is irrelevant here
         }
+    }
     if(loo)
         xp=info$F
     else {

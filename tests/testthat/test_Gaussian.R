@@ -1,0 +1,52 @@
+context("Gaussian")
+
+sigma =3
+set.seed(1)
+n <- 100; p <- 20
+x <- matrix(rnorm(n * p), n, p)
+beta <- matrix(c(rep(2, 5), rep(0, 15)), ncol = 1)
+y <- x %*% beta + rnorm(n)*sigma
+xtest=matrix(rnorm(n * p), n, p)
+ytest <- xtest %*% beta + rnorm(n)*sigma
+
+
+fit1 <- uniLasso(x, y)
+
+pred1 <- predict(fit1,xtest[1:10,],s=1) #predict on test data
+
+# Two-stage variation where we carve off a small dataset for computing the univariate coefs.
+
+cset=1:20
+info = uniInfo(x[cset,],y[cset])
+fit2s <- uniLasso(x[-cset,], y[-cset], info = info)
+
+cvfit1 <- cv.uniLasso(x, y)
+predcv1 <- predict(cvfit1,xtest[1:10,], s="lambda.min")
+
+cvfit2s <- cv.uniLasso(x[-cset,], y[-cset], info = info)
+
+# cv.uniLasso with same positivity constraints, but starting `beta`
+# from univariate fits on the same data. With loo=FALSE, does not tend to do as well,
+# probably due to overfitting.
+
+cvfitpa <- cv.uniLasso(x, y, loo = FALSE)
+
+# cv.uniLasso with no constraints, but starting `beta` from univariate fits.
+# This is a version of the adaptive lasso, which tends to overfit, and loses interpretability.
+
+
+cvfita <- cv.uniLasso(x, y, loo = FALSE, lower.limits = -Inf)
+
+fitu <- cv.uniReg(x, y)
+fitua <- cv.uniReg(x, y, hard.zero = FALSE)
+ci <- ci.uniReg(x, y, B=20)
+
+objects = enlist(fit1,pred1,fit2s,cvfit1,predcv1,cvfit2s,cvfitpa,cvfita,fitu,fitua,ci)
+###saveRDS(objects, "saved_results/test_Gaussian.RDS")
+
+expected  <- readRDS("saved_results/test_Gaussian.RDS")
+for (x in names(objects)) {
+    cat(sprintf("Testing %s\n", x))
+    expect_equal(objects[[x]], expected[[x]])
+}
+
