@@ -13,6 +13,9 @@
 
 \item{\dots}{additional print arguments}
 }
+\value{
+A summary is printed, and nothing is returned.
+}
 \description{
 Print a summary of the results of cross-validation for a uniReg model.
 }

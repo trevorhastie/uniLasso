@@ -103,6 +103,7 @@ cv.uniReg <- function(x,y,family=c("gaussian","binomial","cox"),weights=NULL,
 #' @param x fitted \code{"cv.uniReg"} object, which inherits from \code{"cv.uniLasso"}.
 #' negative if \code{sign.lambda=-1}.
 #' @param \dots Other graphical parameters to plot
+#' @return A plot is produced, and nothing is returned.
 #' @author Trevor Hastie and Rob Tibshirani\cr Maintainer:
 #' Trevor Hastie <hastie@@stanford.edu>
 #' @seealso \code{cv.uniLasso} and \code{glmnet:::cv.glmnet}.
@@ -149,6 +150,7 @@ plot.cv.uniReg = function(x,...){
 #' @param x fitted 'cv.uniReg' object
 #' @param digits significant digits in printout
 #' @param \dots additional print arguments
+#' @return A summary is printed, and nothing is returned.
 #' @author Trevor Hastie and Rob Tibshirani\cr Maintainer:
 #' Trevor Hastie <hastie@@stanford.edu>
 #' @examples

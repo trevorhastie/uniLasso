@@ -12,6 +12,9 @@ negative if \code{sign.lambda=-1}.}
 
 \item{\dots}{Other graphical parameters to plot}
 }
+\value{
+A plot is produced, and nothing is returned.
+}
 \description{
 Plots the cross-validation \code{cv.uniLasso} curve (which is a \code{cv.glmnet} curve), and upper and lower standard deviation
 curves, as a function of the \code{lambda} values used. It highlights the value at the end of the path, which is either \code{lambda = 0}, or else the smallest \code{lambda} if \code{hard.zero = FALSE}.
